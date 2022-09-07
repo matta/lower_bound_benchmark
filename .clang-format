@@ -1,0 +1,18 @@
+# clang-format is required
+#
+# To utilize the tool to lines just touched by a patch, use
+# clang-format-diff script that is usually also packaged with clang-format.
+#
+# Example of usage:
+# git diff -U0 --no-color | clang-format-diff -p1
+# (here the tool will generate a patch)
+# git diff -U0 --no-color | clang-format-diff -p1 -i
+# (modifications are applied)
+---
+Language:		Cpp
+Standard:		c++17
+BasedOnStyle:		google
+ColumnLimit:		79
+DerivePointerAlignment: false
+PointerAlignment:	Left
+...
