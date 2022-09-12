@@ -14,14 +14,19 @@ function configure() {
     fi
 }
 
+function build_test() {
+    cmake --build . --config "$1" && ctest -C "$1" --output-on-failure
+}
+
 function build() {
-    (cd build_$1 && cmake --build . --config Release)
+    (cd build_$1 && build_test Asan && build_test Release)
 }
 
 configure gcc g++
 configure clang clang++
 
 if [[ ! -f compile_commands.json ]]; then
+    rm -f compile_commands.json
     ln -s build_clang/compile_commands.json
 fi
 
