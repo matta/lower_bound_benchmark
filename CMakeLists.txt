@@ -13,6 +13,11 @@ include(FetchContent)
 # build significantly, and lets us not download Google Test.
 set(BENCHMARK_ENABLE_TESTING OFF)
 
+# Disable -Werror in benchmark code because I was getting a weird error
+# from gcc compiling benchmark.cc related to std::string and
+# -Werror=restrict that occurs only with C++20 enabled.
+set(BENCHMARK_ENABLE_WERROR OFF)
+
 # FetchContent_Declare(googletest
 #   GIT_REPOSITORY https://github.com/google/googletest.git
 #   GIT_TAG main
