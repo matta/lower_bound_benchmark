@@ -1,9 +1,13 @@
+#define DOCTEST_CONFIG_IMPLEMENT
+
+#include <functional>
 #include <iostream>
 #include <random>
 #include <span>
 #include <sstream>
 
 #include "benchmark/benchmark.h"
+#include "doctest/doctest.h"
 
 namespace {
 
@@ -263,6 +267,16 @@ void RegisterAll() {
 }  // namespace
 
 int main(int argc, char** argv) {
+  {
+    // Run all doctest tests before Google Benchmark code runs.  This
+    // always occurs; no command line configuration is possible.
+    doctest::Context context;
+    int res = context.run();
+    if (res != 0 || context.shouldExit()) {
+      return res;
+    }
+  }
+
   benchmark::Initialize(&argc, argv);
   if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
   RegisterAll();
