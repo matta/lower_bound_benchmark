@@ -28,9 +28,15 @@ FetchContent_Declare(googlebenchmark
   GIT_TAG main
 )
 
+FetchContent_Declare(doctest
+  GIT_REPOSITORY https://github.com/doctest/doctest.git
+  GIT_TAG master
+)
+
 FetchContent_MakeAvailable(
   # googletest
   googlebenchmark
+  doctest
 )
 
 # add the executable
