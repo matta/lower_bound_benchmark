@@ -57,30 +57,33 @@ set(BENCHMARK_ENABLE_TESTING OFF)
 # -Werror=restrict that occurs only with C++20 enabled.
 set(BENCHMARK_ENABLE_WERROR OFF)
 
-# FetchContent_Declare(googletest
-#   GIT_REPOSITORY https://github.com/google/googletest.git
-#   GIT_TAG main
-# )
-
 FetchContent_Declare(googlebenchmark
   GIT_REPOSITORY https://github.com/google/benchmark.git
-  GIT_TAG main
+  GIT_TAG 49aa374da96199d64fd3de9673b6f405bbc3de3e
 )
 
-FetchContent_Declare(doctest
-  GIT_REPOSITORY https://github.com/doctest/doctest.git
-  GIT_TAG master
+FetchContent_Declare(googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG 1336c4b6d1a6f4bc6beebccb920e5ff858889292
 )
 
 FetchContent_MakeAvailable(
-  # googletest
+  googletest
   googlebenchmark
-  doctest
 )
 
-# add the executable
-add_executable(lower_bound lower_bound.cxx)
-target_link_libraries(lower_bound benchmark::benchmark doctest)
+add_library(lower_bound STATIC lower_bound.cxx)
+
+add_executable(lower_bound_benchmark lower_bound_benchmark.cxx)
+target_link_libraries(lower_bound_benchmark lower_bound benchmark::benchmark)
 add_test(
-  NAME lower_bound
-  COMMAND lower_bound --benchmark_filter=/5$ --benchmark_min_time=0.01)
+  NAME lower_bound_benchmark
+  COMMAND
+  lower_bound_benchmark
+  --benchmark_filter=/4$
+  --benchmark_min_time=0.025)
+
+add_executable(lower_bound_test lower_bound_test.cxx)
+target_link_libraries(lower_bound_test lower_bound GTest::gmock_main)
+include(GoogleTest)
+gtest_discover_tests(lower_bound_test)
