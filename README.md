@@ -1,356 +1,466 @@
-# Benchmark LowerBound on Binary Search Trees
+# Benchmarking Search in Binary Search Trees
 
-## Building
+<!-- ## TLDR -->
 
-You need cmake and a C++ compiler installed.  Then do this:
+<!-- The exact same binary tree search algorithm can perform 60% better or worse -->
+<!-- depending on several factors.  Factors include: compiler used (i.e. the -->
+<!-- code it chooses to emit), the memory layout of the tree itself, and the -->
+<!-- access pattern.  At the level of the level of the CPU and memory subsystem, -->
+<!-- things boil down to cache effects and branch prediction. -->
 
-```sh
-mkdir build
-cd build
-CC=clang CXX=clang++ cmake -G 'Ninja Multi-Config' ..
-cmake --build . --config Release
-```
+<!-- ## Building -->
 
-Omit the `CC=clang CXX=clang++` if you want cmake to pick the system's
-default compiler.
+<!-- You need cmake and both gcc and clang installed installed.  Then do this: -->
 
-## Results
+<!-- ```sh -->
+<!-- ./doitall.sh -->
+<!-- ``` -->
 
-Switching from clang to gcc improved the execution time by roughly 43% on
-my laptop running an Intel chip (Intel(R) Core(TM) i5-5200U CPU @ 2.20GHz).
-See "OVERALL_GEOMEAN" at the end of the output below.
+<!-- ...or read that script for details. -->
 
-```sh
-% taskset -c 0 ./build/_deps/googlebenchmark-src/tools/compare.py benchmarks ./build_clang/Release/lower_bound ./build/Release/lower_bound  --benchmark_repetitions=10
-RUNNING: ./build_clang/Release/lower_bound --benchmark_repetitions=10 --benchmark_out=/tmp/tmpfqrxcuy9
-2022-09-07T12:45:10-07:00
-Running ./build_clang/Release/lower_bound
-Run on (4 X 2494.27 MHz CPU s)
-CPU Caches:
-  L1 Data 32 KiB (x2)
-  L1 Instruction 32 KiB (x2)
-  L2 Unified 256 KiB (x2)
-  L3 Unified 3072 KiB (x1)
-Load Average: 1.17, 1.01, 0.95
------------------------------------------------------------------------
-Benchmark                             Time             CPU   Iterations
------------------------------------------------------------------------
-BM_LowerBound/8                    5.30 ns         5.27 ns    133089480
-BM_LowerBound/8                    5.31 ns         5.27 ns    133089480
-BM_LowerBound/8                    5.54 ns         5.50 ns    133089480
-BM_LowerBound/8                    5.31 ns         5.29 ns    133089480
-BM_LowerBound/8                    5.31 ns         5.29 ns    133089480
-BM_LowerBound/8                    5.39 ns         5.36 ns    133089480
-BM_LowerBound/8                    5.30 ns         5.28 ns    133089480
-BM_LowerBound/8                    5.27 ns         5.25 ns    133089480
-BM_LowerBound/8                    5.50 ns         5.47 ns    133089480
-BM_LowerBound/8                    5.31 ns         5.27 ns    133089480
-BM_LowerBound/8_mean               5.35 ns         5.32 ns           10
-BM_LowerBound/8_median             5.31 ns         5.28 ns           10
-BM_LowerBound/8_stddev            0.093 ns        0.089 ns           10
-BM_LowerBound/8_cv                 1.73 %          1.67 %            10
-BM_LowerBound/64                   11.3 ns         11.2 ns     57286272
-BM_LowerBound/64                   10.9 ns         10.9 ns     57286272
-BM_LowerBound/64                   10.9 ns         10.9 ns     57286272
-BM_LowerBound/64                   10.8 ns         10.8 ns     57286272
-BM_LowerBound/64                   10.6 ns         10.5 ns     57286272
-BM_LowerBound/64                   10.4 ns         10.4 ns     57286272
-BM_LowerBound/64                   10.5 ns         10.5 ns     57286272
-BM_LowerBound/64                   10.4 ns         10.4 ns     57286272
-BM_LowerBound/64                   10.2 ns         10.2 ns     57286272
-BM_LowerBound/64                   10.5 ns         10.5 ns     57286272
-BM_LowerBound/64_mean              10.7 ns         10.6 ns           10
-BM_LowerBound/64_median            10.6 ns         10.5 ns           10
-BM_LowerBound/64_stddev           0.311 ns        0.307 ns           10
-BM_LowerBound/64_cv                2.91 %          2.89 %            10
-BM_LowerBound/512                  28.3 ns         28.2 ns     24367616
-BM_LowerBound/512                  28.2 ns         28.1 ns     24367616
-BM_LowerBound/512                  28.2 ns         28.1 ns     24367616
-BM_LowerBound/512                  28.3 ns         28.2 ns     24367616
-BM_LowerBound/512                  28.2 ns         28.1 ns     24367616
-BM_LowerBound/512                  28.1 ns         28.1 ns     24367616
-BM_LowerBound/512                  28.2 ns         28.2 ns     24367616
-BM_LowerBound/512                  28.1 ns         28.0 ns     24367616
-BM_LowerBound/512                  28.1 ns         28.0 ns     24367616
-BM_LowerBound/512                  28.2 ns         28.1 ns     24367616
-BM_LowerBound/512_mean             28.2 ns         28.1 ns           10
-BM_LowerBound/512_median           28.2 ns         28.1 ns           10
-BM_LowerBound/512_stddev          0.066 ns        0.063 ns           10
-BM_LowerBound/512_cv               0.23 %          0.22 %            10
-BM_LowerBound/4096                 41.7 ns         41.6 ns     16502784
-BM_LowerBound/4096                 41.8 ns         41.7 ns     16502784
-BM_LowerBound/4096                 42.3 ns         42.0 ns     16502784
-BM_LowerBound/4096                 41.8 ns         41.7 ns     16502784
-BM_LowerBound/4096                 42.4 ns         42.2 ns     16502784
-BM_LowerBound/4096                 41.7 ns         41.6 ns     16502784
-BM_LowerBound/4096                 42.0 ns         41.8 ns     16502784
-BM_LowerBound/4096                 41.8 ns         41.7 ns     16502784
-BM_LowerBound/4096                 41.9 ns         41.8 ns     16502784
-BM_LowerBound/4096                 41.9 ns         41.8 ns     16502784
-BM_LowerBound/4096_mean            41.9 ns         41.8 ns           10
-BM_LowerBound/4096_median          41.9 ns         41.7 ns           10
-BM_LowerBound/4096_stddev         0.223 ns        0.184 ns           10
-BM_LowerBound/4096_cv              0.53 %          0.44 %            10
-BM_LowerBound/32768                53.9 ns         53.7 ns     12910592
-BM_LowerBound/32768                58.1 ns         57.9 ns     12910592
-BM_LowerBound/32768                53.8 ns         53.6 ns     12910592
-BM_LowerBound/32768                54.3 ns         54.2 ns     12910592
-BM_LowerBound/32768                54.2 ns         54.0 ns     12910592
-BM_LowerBound/32768                53.5 ns         53.4 ns     12910592
-BM_LowerBound/32768                53.7 ns         53.5 ns     12910592
-BM_LowerBound/32768                53.6 ns         53.5 ns     12910592
-BM_LowerBound/32768                53.8 ns         53.7 ns     12910592
-BM_LowerBound/32768                53.8 ns         53.6 ns     12910592
-BM_LowerBound/32768_mean           54.3 ns         54.1 ns           10
-BM_LowerBound/32768_median         53.8 ns         53.7 ns           10
-BM_LowerBound/32768_stddev         1.37 ns         1.36 ns           10
-BM_LowerBound/32768_cv             2.53 %          2.51 %            10
-BM_LowerBound/262144               94.0 ns         93.7 ns      7864320
-BM_LowerBound/262144               92.7 ns         92.4 ns      7864320
-BM_LowerBound/262144               89.9 ns         89.6 ns      7864320
-BM_LowerBound/262144               91.7 ns         91.4 ns      7864320
-BM_LowerBound/262144               90.1 ns         89.9 ns      7864320
-BM_LowerBound/262144               90.1 ns         89.8 ns      7864320
-BM_LowerBound/262144               90.7 ns         90.4 ns      7864320
-BM_LowerBound/262144               90.5 ns         90.3 ns      7864320
-BM_LowerBound/262144               90.4 ns         90.1 ns      7864320
-BM_LowerBound/262144               90.5 ns         90.2 ns      7864320
-BM_LowerBound/262144_mean          91.1 ns         90.8 ns           10
-BM_LowerBound/262144_median        90.5 ns         90.2 ns           10
-BM_LowerBound/262144_stddev        1.33 ns         1.32 ns           10
-BM_LowerBound/262144_cv            1.46 %          1.45 %            10
-BM_LowerBound/1048576               112 ns          112 ns      6291456
-BM_LowerBound/1048576               141 ns          140 ns      6291456
-BM_LowerBound/1048576               118 ns          118 ns      6291456
-BM_LowerBound/1048576               108 ns          108 ns      6291456
-BM_LowerBound/1048576               134 ns          133 ns      6291456
-BM_LowerBound/1048576               108 ns          108 ns      6291456
-BM_LowerBound/1048576               112 ns          112 ns      6291456
-BM_LowerBound/1048576               113 ns          113 ns      6291456
-BM_LowerBound/1048576               113 ns          113 ns      6291456
-BM_LowerBound/1048576               112 ns          111 ns      6291456
-BM_LowerBound/1048576_mean          117 ns          117 ns           10
-BM_LowerBound/1048576_median        113 ns          112 ns           10
-BM_LowerBound/1048576_stddev       11.2 ns         11.1 ns           10
-BM_LowerBound/1048576_cv           9.52 %          9.51 %            10
-RUNNING: ./build/Release/lower_bound --benchmark_repetitions=10 --benchmark_out=/tmp/tmp8sfgil6s
-2022-09-07T12:46:02-07:00
-Running ./build/Release/lower_bound
-Run on (4 X 2494.26 MHz CPU s)
-CPU Caches:
-  L1 Data 32 KiB (x2)
-  L1 Instruction 32 KiB (x2)
-  L2 Unified 256 KiB (x2)
-  L3 Unified 3072 KiB (x1)
-Load Average: 1.07, 1.01, 0.95
------------------------------------------------------------------------
-Benchmark                             Time             CPU   Iterations
------------------------------------------------------------------------
-BM_LowerBound/8                    5.65 ns         5.64 ns    123227648
-BM_LowerBound/8                    5.65 ns         5.64 ns    123227648
-BM_LowerBound/8                    5.70 ns         5.69 ns    123227648
-BM_LowerBound/8                    5.65 ns         5.64 ns    123227648
-BM_LowerBound/8                    5.66 ns         5.64 ns    123227648
-BM_LowerBound/8                    5.68 ns         5.66 ns    123227648
-BM_LowerBound/8                    5.68 ns         5.67 ns    123227648
-BM_LowerBound/8                    5.66 ns         5.65 ns    123227648
-BM_LowerBound/8                    5.68 ns         5.66 ns    123227648
-BM_LowerBound/8                    5.70 ns         5.68 ns    123227648
-BM_LowerBound/8_mean               5.67 ns         5.66 ns           10
-BM_LowerBound/8_median             5.67 ns         5.65 ns           10
-BM_LowerBound/8_stddev            0.019 ns        0.018 ns           10
-BM_LowerBound/8_cv                 0.34 %          0.32 %            10
-BM_LowerBound/64                   9.07 ns         9.02 ns     71946048
-BM_LowerBound/64                   8.90 ns         8.88 ns     71946048
-BM_LowerBound/64                   8.88 ns         8.86 ns     71946048
-BM_LowerBound/64                   8.96 ns         8.93 ns     71946048
-BM_LowerBound/64                   8.93 ns         8.90 ns     71946048
-BM_LowerBound/64                   8.91 ns         8.88 ns     71946048
-BM_LowerBound/64                   8.92 ns         8.89 ns     71946048
-BM_LowerBound/64                   8.92 ns         8.89 ns     71946048
-BM_LowerBound/64                   8.88 ns         8.85 ns     71946048
-BM_LowerBound/64                   8.92 ns         8.90 ns     71946048
-BM_LowerBound/64_mean              8.93 ns         8.90 ns           10
-BM_LowerBound/64_median            8.92 ns         8.89 ns           10
-BM_LowerBound/64_stddev           0.055 ns        0.048 ns           10
-BM_LowerBound/64_cv                0.62 %          0.54 %            10
-BM_LowerBound/512                  14.0 ns         13.9 ns     49075712
-BM_LowerBound/512                  13.7 ns         13.7 ns     49075712
-BM_LowerBound/512                  15.5 ns         15.4 ns     49075712
-BM_LowerBound/512                  13.9 ns         13.8 ns     49075712
-BM_LowerBound/512                  13.8 ns         13.8 ns     49075712
-BM_LowerBound/512                  13.8 ns         13.7 ns     49075712
-BM_LowerBound/512                  13.7 ns         13.6 ns     49075712
-BM_LowerBound/512                  13.8 ns         13.8 ns     49075712
-BM_LowerBound/512                  13.7 ns         13.7 ns     49075712
-BM_LowerBound/512                  13.8 ns         13.8 ns     49075712
-BM_LowerBound/512_mean             14.0 ns         13.9 ns           10
-BM_LowerBound/512_median           13.8 ns         13.8 ns           10
-BM_LowerBound/512_stddev          0.535 ns        0.514 ns           10
-BM_LowerBound/512_cv               3.83 %          3.69 %            10
-BM_LowerBound/4096                 16.9 ns         16.8 ns     38821888
-BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888
-BM_LowerBound/4096                 17.3 ns         17.1 ns     38821888
-BM_LowerBound/4096                 16.9 ns         16.8 ns     38821888
-BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888
-BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888
-BM_LowerBound/4096                 16.9 ns         16.8 ns     38821888
-BM_LowerBound/4096                 16.7 ns         16.7 ns     38821888
-BM_LowerBound/4096                 16.7 ns         16.7 ns     38821888
-BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888
-BM_LowerBound/4096_mean            16.8 ns         16.8 ns           10
-BM_LowerBound/4096_median          16.8 ns         16.7 ns           10
-BM_LowerBound/4096_stddev         0.155 ns        0.137 ns           10
-BM_LowerBound/4096_cv              0.92 %          0.81 %            10
-BM_LowerBound/32768                20.9 ns         20.8 ns     29065216
-BM_LowerBound/32768                20.7 ns         20.7 ns     29065216
-BM_LowerBound/32768                20.6 ns         20.5 ns     29065216
-BM_LowerBound/32768                20.5 ns         20.5 ns     29065216
-BM_LowerBound/32768                20.5 ns         20.4 ns     29065216
-BM_LowerBound/32768                20.6 ns         20.5 ns     29065216
-BM_LowerBound/32768                20.6 ns         20.5 ns     29065216
-BM_LowerBound/32768                20.5 ns         20.4 ns     29065216
-BM_LowerBound/32768                20.8 ns         20.7 ns     29065216
-BM_LowerBound/32768                20.9 ns         20.8 ns     29065216
-BM_LowerBound/32768_mean           20.7 ns         20.6 ns           10
-BM_LowerBound/32768_median         20.6 ns         20.5 ns           10
-BM_LowerBound/32768_stddev        0.172 ns        0.158 ns           10
-BM_LowerBound/32768_cv             0.83 %          0.77 %            10
-BM_LowerBound/262144               54.8 ns         54.6 ns     14155776
-BM_LowerBound/262144               53.5 ns         53.3 ns     14155776
-BM_LowerBound/262144               50.2 ns         50.1 ns     14155776
-BM_LowerBound/262144               54.3 ns         54.2 ns     14155776
-BM_LowerBound/262144               49.7 ns         49.5 ns     14155776
-BM_LowerBound/262144               49.5 ns         49.2 ns     14155776
-BM_LowerBound/262144               49.4 ns         49.3 ns     14155776
-BM_LowerBound/262144               49.4 ns         49.2 ns     14155776
-BM_LowerBound/262144               49.8 ns         49.7 ns     14155776
-BM_LowerBound/262144               49.4 ns         49.2 ns     14155776
-BM_LowerBound/262144_mean          51.0 ns         50.8 ns           10
-BM_LowerBound/262144_median        49.8 ns         49.6 ns           10
-BM_LowerBound/262144_stddev        2.24 ns         2.25 ns           10
-BM_LowerBound/262144_cv            4.39 %          4.42 %            10
-BM_LowerBound/1048576              72.2 ns         72.0 ns     10485760
-BM_LowerBound/1048576              74.0 ns         73.8 ns     10485760
-BM_LowerBound/1048576              75.2 ns         74.9 ns     10485760
-BM_LowerBound/1048576              75.0 ns         74.5 ns     10485760
-BM_LowerBound/1048576              77.6 ns         77.3 ns     10485760
-BM_LowerBound/1048576              72.8 ns         72.6 ns     10485760
-BM_LowerBound/1048576              73.2 ns         73.0 ns     10485760
-BM_LowerBound/1048576              73.5 ns         73.3 ns     10485760
-BM_LowerBound/1048576              73.6 ns         73.4 ns     10485760
-BM_LowerBound/1048576              73.3 ns         73.1 ns     10485760
-BM_LowerBound/1048576_mean         74.1 ns         73.8 ns           10
-BM_LowerBound/1048576_median       73.6 ns         73.3 ns           10
-BM_LowerBound/1048576_stddev       1.56 ns         1.51 ns           10
-BM_LowerBound/1048576_cv           2.11 %          2.04 %            10
-Comparing ./build_clang/Release/lower_bound to ./build/Release/lower_bound
-Benchmark                                      Time             CPU      Time Old      Time New       CPU Old       CPU New
----------------------------------------------------------------------------------------------------------------------------
-BM_LowerBound/8                             +0.0662         +0.0697             5             6             5             6
-BM_LowerBound/8                             +0.0655         +0.0697             5             6             5             6
-BM_LowerBound/8                             +0.0297         +0.0336             6             6             6             6
-BM_LowerBound/8                             +0.0654         +0.0669             5             6             5             6
-BM_LowerBound/8                             +0.0645         +0.0662             5             6             5             6
-BM_LowerBound/8                             +0.0547         +0.0568             5             6             5             6
-BM_LowerBound/8                             +0.0720         +0.0736             5             6             5             6
-BM_LowerBound/8                             +0.0744         +0.0751             5             6             5             6
-BM_LowerBound/8                             +0.0328         +0.0358             5             6             5             6
-BM_LowerBound/8                             +0.0740         +0.0774             5             6             5             6
-BM_LowerBound/8_pvalue                       0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/8_mean                        +0.0597         +0.0623             5             6             5             6
-BM_LowerBound/8_median                      +0.0687         +0.0706             5             6             5             6
-BM_LowerBound/8_stddev                      -0.7901         -0.7966             0             0             0             0
-BM_LowerBound/8_cv                          -0.8019         -0.8085             0             0             0             0
-BM_LowerBound/64                            -0.1962         -0.1968            11             9            11             9
-BM_LowerBound/64                            -0.1844         -0.1839            11             9            11             9
-BM_LowerBound/64                            -0.1849         -0.1839            11             9            11             9
-BM_LowerBound/64                            -0.1736         -0.1740            11             9            11             9
-BM_LowerBound/64                            -0.1552         -0.1540            11             9            11             9
-BM_LowerBound/64                            -0.1449         -0.1441            10             9            10             9
-BM_LowerBound/64                            -0.1542         -0.1542            11             9            11             9
-BM_LowerBound/64                            -0.1453         -0.1450            10             9            10             9
-BM_LowerBound/64                            -0.1340         -0.1337            10             9            10             9
-BM_LowerBound/64                            -0.1500         -0.1495            10             9            10             9
-BM_LowerBound/64_pvalue                      0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/64_mean                       -0.1628         -0.1625            11             9            11             9
-BM_LowerBound/64_median                     -0.1554         -0.1547            11             9            11             9
-BM_LowerBound/64_stddev                     -0.8225         -0.8439             0             0             0             0
-BM_LowerBound/64_cv                         -0.7879         -0.8136             0             0             0             0
-BM_LowerBound/512                           -0.5057         -0.5056            28            14            28            14
-BM_LowerBound/512                           -0.5134         -0.5135            28            14            28            14
-BM_LowerBound/512                           -0.4519         -0.4541            28            15            28            15
-BM_LowerBound/512                           -0.5073         -0.5091            28            14            28            14
-BM_LowerBound/512                           -0.5107         -0.5108            28            14            28            14
-BM_LowerBound/512                           -0.5105         -0.5108            28            14            28            14
-BM_LowerBound/512                           -0.5158         -0.5158            28            14            28            14
-BM_LowerBound/512                           -0.5084         -0.5086            28            14            28            14
-BM_LowerBound/512                           -0.5118         -0.5117            28            14            28            14
-BM_LowerBound/512                           -0.5100         -0.5098            28            14            28            14
-BM_LowerBound/512_pvalue                     0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/512_mean                      -0.5046         -0.5050            28            14            28            14
-BM_LowerBound/512_median                    -0.5106         -0.5106            28            14            28            14
-BM_LowerBound/512_stddev                    +7.0911         +7.1346             0             1             0             1
-BM_LowerBound/512_cv                       +15.3312        +15.4326             0             0             0             0
-BM_LowerBound/4096                          -0.5949         -0.5954            42            17            42            17
-BM_LowerBound/4096                          -0.5986         -0.5987            42            17            42            17
-BM_LowerBound/4096                          -0.5917         -0.5915            42            17            42            17
-BM_LowerBound/4096                          -0.5965         -0.5966            42            17            42            17
-BM_LowerBound/4096                          -0.6044         -0.6037            42            17            42            17
-BM_LowerBound/4096                          -0.5976         -0.5977            42            17            42            17
-BM_LowerBound/4096                          -0.5978         -0.5977            42            17            42            17
-BM_LowerBound/4096                          -0.6001         -0.5999            42            17            42            17
-BM_LowerBound/4096                          -0.6010         -0.6008            42            17            42            17
-BM_LowerBound/4096                          -0.5993         -0.5993            42            17            42            17
-BM_LowerBound/4096_pvalue                    0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/4096_mean                     -0.5982         -0.5981            42            17            42            17
-BM_LowerBound/4096_median                   -0.5991         -0.5991            42            17            42            17
-BM_LowerBound/4096_stddev                   -0.3065         -0.2585             0             0             0             0
-BM_LowerBound/4096_cv                       +0.7259         +0.8451             0             0             0             0
-BM_LowerBound/32768                         -0.6120         -0.6124            54            21            54            21
-BM_LowerBound/32768                         -0.6435         -0.6432            58            21            58            21
-BM_LowerBound/32768                         -0.6173         -0.6173            54            21            54            21
-BM_LowerBound/32768                         -0.6220         -0.6220            54            21            54            20
-BM_LowerBound/32768                         -0.6220         -0.6220            54            20            54            20
-BM_LowerBound/32768                         -0.6157         -0.6157            54            21            53            21
-BM_LowerBound/32768                         -0.6173         -0.6169            54            21            53            20
-BM_LowerBound/32768                         -0.6176         -0.6177            54            21            53            20
-BM_LowerBound/32768                         -0.6135         -0.6136            54            21            54            21
-BM_LowerBound/32768                         -0.6107         -0.6114            54            21            54            21
-BM_LowerBound/32768_pvalue                   0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/32768_mean                    -0.6194         -0.6194            54            21            54            21
-BM_LowerBound/32768_median                  -0.6176         -0.6178            54            21            54            21
-BM_LowerBound/32768_stddev                  -0.8748         -0.8834             1             0             1             0
-BM_LowerBound/32768_cv                      -0.6711         -0.6935             0             0             0             0
-BM_LowerBound/262144                        -0.4174         -0.4170            94            55            94            55
-BM_LowerBound/262144                        -0.4231         -0.4231            93            53            92            53
-BM_LowerBound/262144                        -0.4417         -0.4416            90            50            90            50
-BM_LowerBound/262144                        -0.4076         -0.4075            92            54            91            54
-BM_LowerBound/262144                        -0.4485         -0.4491            90            50            90            50
-BM_LowerBound/262144                        -0.4510         -0.4522            90            49            90            49
-BM_LowerBound/262144                        -0.4550         -0.4551            91            49            90            49
-BM_LowerBound/262144                        -0.4546         -0.4547            91            49            90            49
-BM_LowerBound/262144                        -0.4491         -0.4492            90            50            90            50
-BM_LowerBound/262144                        -0.4546         -0.4541            91            49            90            49
-BM_LowerBound/262144_pvalue                  0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/262144_mean                   -0.4401         -0.4402            91            51            91            51
-BM_LowerBound/262144_median                 -0.4505         -0.4505            91            50            90            50
-BM_LowerBound/262144_stddev                 +0.6832         +0.7082             1             2             1             2
-BM_LowerBound/262144_cv                     +2.0061         +2.0514             0             0             0             0
-BM_LowerBound/1048576                       -0.3574         -0.3569           112            72           112            72
-BM_LowerBound/1048576                       -0.4747         -0.4742           141            74           140            74
-BM_LowerBound/1048576                       -0.3650         -0.3662           118            75           118            75
-BM_LowerBound/1048576                       -0.3063         -0.3082           108            75           108            75
-BM_LowerBound/1048576                       -0.4197         -0.4205           134            78           133            77
-BM_LowerBound/1048576                       -0.3255         -0.3258           108            73           108            73
-BM_LowerBound/1048576                       -0.3488         -0.3479           112            73           112            73
-BM_LowerBound/1048576                       -0.3497         -0.3494           113            74           113            73
-BM_LowerBound/1048576                       -0.3490         -0.3483           113            74           113            73
-BM_LowerBound/1048576                       -0.3448         -0.3445           112            73           111            73
-BM_LowerBound/1048576_pvalue                 0.0002          0.0002      U Test, Repetitions: 10 vs 10
-BM_LowerBound/1048576_mean                  -0.3682         -0.3683           117            74           117            74
-BM_LowerBound/1048576_median                -0.3475         -0.3468           113            74           112            73
-BM_LowerBound/1048576_stddev                -0.8601         -0.8644            11             2            11             2
-BM_LowerBound/1048576_cv                    -0.7785         -0.7853             0             0             0             0
-OVERALL_GEOMEAN                             -0.4307         -0.4301             0             0             0             0
-```
+<!-- ## What this tests -->
+
+<!-- This tests accessing "perfectly balanced" binary trees.  These are trees -->
+<!-- where no node with one child has a grandchild. -->
+
+<!-- Two details are then varried: the memory layout of the nodes themselves, -->
+<!-- and the access pattern. -->
+
+<!-- Nodes are allocated continuously in an array.  Two memory layouts within -->
+<!-- this array are used: "ideal" and uniformly randomized.  The ideal layout -->
+<!-- places the root node at index zero, then its two children at indices 1 and -->
+<!-- 2, then their children at indices 3 through 7, and so on.  The randomized -->
+<!-- layout places nodes randomly within the array. -->
+
+<!-- The access patterns are either ascending or uniformly random. -->
+
+<!-- ## Expected Results -->
+
+<!-- I began with one question and two hypotheses: -->
+
+<!-- 1. I had no idea how gcc and clang would affect behavior, but I expected an -->
+<!--    impact. -->
+<!-- 2. I expected randomized memory layouts to have a slight negative impact. -->
+<!-- 3. I expected randomized lookup patterns to be significantly worse than -->
+<!--    ascending. -->
+
+<!-- ## Results -->
+
+<!-- When comparing `A` and `B` we'll use the formula `(B - A) / A`, which gives -->
+<!-- a percentage gain or loss from `A`.  Positive numbers mean `A` is faster, -->
+<!-- negative `B`. -->
+
+<!-- This benchmark was a significant win for gcc overall, with gcc showing an -->
+<!-- overall improvement of 24% over clang (geometric mean).  The interesting -->
+<!-- part is that the overall geometric mean varies by size of the tree: -->
+
+<!-- | tree size | clang -vs- gcc | -->
+<!-- |-----------|----------------| -->
+<!-- |       10  | gcc 22% slower | -->
+<!-- |       50  | gcc 4% slower  | -->
+<!-- |      100  | gcc 14% faster | -->
+<!-- |    10000  | gcc 53% faster | -->
+<!-- |  1000000  | gcc 45% faster | -->
+
+<!--  weighs -->
+<!-- smaller trees more heavily than larger.  Looking at trees with 1M nodes, -->
+<!-- gcc improves timings by a factor of -0.59, and further limiting to -->
+<!-- Random/Random trees with 1M nodes gcc wins by -0.66.  Depending on how I -->
+<!-- weighted things, the gcc improved over clang between 16% and 63%, except -->
+<!-- for very small trees (<=50 nodes) where it was a wash. -->
+
+<!-- To my surprise, switching from "ideal" memory layouts to randomized ones is -->
+<!-- about a 20% performance hit, but that isn't the whole story.  For smaller -->
+<!-- trees, it is a wash.  It makes a difference only in larger trees, where it -->
+<!-- was nearly a 50% performance hit. -->
+
+<!-- Switching from uniformly random access patterns to ascending is about a -->
+<!-- 13% performance hit. -->
+
+<!-- ## Why The Gcc Builds Were Faster -->
+
+<!-- Gcc uses a branching strategy whereas Clang uses conditional moves. -->
+
+<!-- ### Gcc -->
+<!-- ```asm -->
+<!-- LowerBound(Node*, long): -->
+<!--   xor ecx, ecx -->
+<!-- .WHILE_X_NOT_NULL: -->
+<!--   test rdi, rdi -->
+<!--   je .RETURN_LOWER -->
+<!-- .X_NOT_NULL: -->
+<!--   mov rax, QWORD PTR [rdi] -->
+<!--   mov rdx, QWORD PTR [rdi+8] -->
+<!--   cmp rsi, QWORD PTR [rdi+16] -->
+<!--   jg .ASSIGN_X_TO_LOWER_AND_XLEFT_TO_X -->
+<!--   mov rdi, rdx -->
+<!--   test rdi, rdi -->
+<!--   jne .X_NOT_NULL -->
+<!-- .RETURN_LOWER: -->
+<!--   mov rax, rcx -->
+<!--   ret -->
+<!-- .ASSIGN_X_TO_LOWER_AND_XLEFT_TO_X: -->
+<!--   mov rcx, rdi -->
+<!--   mov rdi, rax -->
+<!--   jmp .WHILE_X_NOT_NULL -->
+<!-- ``` -->
+
+<!-- ### Clang -->
+<!-- ```asm -->
+<!-- LowerBound(Node*, long): # @LowerBound(Node*, long) -->
+<!--   xor eax, eax -->
+<!--   test rdi, rdi -->
+<!--   je .RETURN -->
+<!-- .WHILE_X_NOT_NULL: -->
+<!--   lea rcx, [rdi + 8] -->
+<!--   cmp qword ptr [rdi + 16], rsi -->
+<!--   cmovl rcx, rdi -->
+<!--   cmovl rax, rdi -->
+<!--   mov rdi, qword ptr [rcx] -->
+<!--   test rdi, rdi -->
+<!--   jne .WHILE_X_NOT_NULL -->
+<!-- .RETURN: -->
+<!--   ret -->
+<!-- ``` -->
+
+<!-- ## blah  -->
+
+
+<!-- On my desktop the improvement was a 16% reduction. -->
+
+<!-- See "OVERALL_GEOMEAN" at the end of the output below. -->
+
+<!-- ```sh -->
+<!-- % taskset -c 0 ./build/_deps/googlebenchmark-src/tools/compare.py benchmarks ./build_clang/Release/lower_bound ./build/Release/lower_bound  --benchmark_repetitions=10 -->
+<!-- RUNNING: ./build_clang/Release/lower_bound --benchmark_repetitions=10 --benchmark_out=/tmp/tmpfqrxcuy9 -->
+<!-- 2022-09-07T12:45:10-07:00 -->
+<!-- Running ./build_clang/Release/lower_bound -->
+<!-- Run on (4 X 2494.27 MHz CPU s) -->
+<!-- CPU Caches: -->
+<!--   L1 Data 32 KiB (x2) -->
+<!--   L1 Instruction 32 KiB (x2) -->
+<!--   L2 Unified 256 KiB (x2) -->
+<!--   L3 Unified 3072 KiB (x1) -->
+<!-- Load Average: 1.17, 1.01, 0.95 -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- Benchmark                             Time             CPU   Iterations -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- BM_LowerBound/8                    5.30 ns         5.27 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.31 ns         5.27 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.54 ns         5.50 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.31 ns         5.29 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.31 ns         5.29 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.39 ns         5.36 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.30 ns         5.28 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.27 ns         5.25 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.50 ns         5.47 ns    133089480 -->
+<!-- BM_LowerBound/8                    5.31 ns         5.27 ns    133089480 -->
+<!-- BM_LowerBound/8_mean               5.35 ns         5.32 ns           10 -->
+<!-- BM_LowerBound/8_median             5.31 ns         5.28 ns           10 -->
+<!-- BM_LowerBound/8_stddev            0.093 ns        0.089 ns           10 -->
+<!-- BM_LowerBound/8_cv                 1.73 %          1.67 %            10 -->
+<!-- BM_LowerBound/64                   11.3 ns         11.2 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.9 ns         10.9 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.9 ns         10.9 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.8 ns         10.8 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.6 ns         10.5 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.4 ns         10.4 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.5 ns         10.5 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.4 ns         10.4 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.2 ns         10.2 ns     57286272 -->
+<!-- BM_LowerBound/64                   10.5 ns         10.5 ns     57286272 -->
+<!-- BM_LowerBound/64_mean              10.7 ns         10.6 ns           10 -->
+<!-- BM_LowerBound/64_median            10.6 ns         10.5 ns           10 -->
+<!-- BM_LowerBound/64_stddev           0.311 ns        0.307 ns           10 -->
+<!-- BM_LowerBound/64_cv                2.91 %          2.89 %            10 -->
+<!-- BM_LowerBound/512                  28.3 ns         28.2 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.2 ns         28.1 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.2 ns         28.1 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.3 ns         28.2 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.2 ns         28.1 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.1 ns         28.1 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.2 ns         28.2 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.1 ns         28.0 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.1 ns         28.0 ns     24367616 -->
+<!-- BM_LowerBound/512                  28.2 ns         28.1 ns     24367616 -->
+<!-- BM_LowerBound/512_mean             28.2 ns         28.1 ns           10 -->
+<!-- BM_LowerBound/512_median           28.2 ns         28.1 ns           10 -->
+<!-- BM_LowerBound/512_stddev          0.066 ns        0.063 ns           10 -->
+<!-- BM_LowerBound/512_cv               0.23 %          0.22 %            10 -->
+<!-- BM_LowerBound/4096                 41.7 ns         41.6 ns     16502784 -->
+<!-- BM_LowerBound/4096                 41.8 ns         41.7 ns     16502784 -->
+<!-- BM_LowerBound/4096                 42.3 ns         42.0 ns     16502784 -->
+<!-- BM_LowerBound/4096                 41.8 ns         41.7 ns     16502784 -->
+<!-- BM_LowerBound/4096                 42.4 ns         42.2 ns     16502784 -->
+<!-- BM_LowerBound/4096                 41.7 ns         41.6 ns     16502784 -->
+<!-- BM_LowerBound/4096                 42.0 ns         41.8 ns     16502784 -->
+<!-- BM_LowerBound/4096                 41.8 ns         41.7 ns     16502784 -->
+<!-- BM_LowerBound/4096                 41.9 ns         41.8 ns     16502784 -->
+<!-- BM_LowerBound/4096                 41.9 ns         41.8 ns     16502784 -->
+<!-- BM_LowerBound/4096_mean            41.9 ns         41.8 ns           10 -->
+<!-- BM_LowerBound/4096_median          41.9 ns         41.7 ns           10 -->
+<!-- BM_LowerBound/4096_stddev         0.223 ns        0.184 ns           10 -->
+<!-- BM_LowerBound/4096_cv              0.53 %          0.44 %            10 -->
+<!-- BM_LowerBound/32768                53.9 ns         53.7 ns     12910592 -->
+<!-- BM_LowerBound/32768                58.1 ns         57.9 ns     12910592 -->
+<!-- BM_LowerBound/32768                53.8 ns         53.6 ns     12910592 -->
+<!-- BM_LowerBound/32768                54.3 ns         54.2 ns     12910592 -->
+<!-- BM_LowerBound/32768                54.2 ns         54.0 ns     12910592 -->
+<!-- BM_LowerBound/32768                53.5 ns         53.4 ns     12910592 -->
+<!-- BM_LowerBound/32768                53.7 ns         53.5 ns     12910592 -->
+<!-- BM_LowerBound/32768                53.6 ns         53.5 ns     12910592 -->
+<!-- BM_LowerBound/32768                53.8 ns         53.7 ns     12910592 -->
+<!-- BM_LowerBound/32768                53.8 ns         53.6 ns     12910592 -->
+<!-- BM_LowerBound/32768_mean           54.3 ns         54.1 ns           10 -->
+<!-- BM_LowerBound/32768_median         53.8 ns         53.7 ns           10 -->
+<!-- BM_LowerBound/32768_stddev         1.37 ns         1.36 ns           10 -->
+<!-- BM_LowerBound/32768_cv             2.53 %          2.51 %            10 -->
+<!-- BM_LowerBound/262144               94.0 ns         93.7 ns      7864320 -->
+<!-- BM_LowerBound/262144               92.7 ns         92.4 ns      7864320 -->
+<!-- BM_LowerBound/262144               89.9 ns         89.6 ns      7864320 -->
+<!-- BM_LowerBound/262144               91.7 ns         91.4 ns      7864320 -->
+<!-- BM_LowerBound/262144               90.1 ns         89.9 ns      7864320 -->
+<!-- BM_LowerBound/262144               90.1 ns         89.8 ns      7864320 -->
+<!-- BM_LowerBound/262144               90.7 ns         90.4 ns      7864320 -->
+<!-- BM_LowerBound/262144               90.5 ns         90.3 ns      7864320 -->
+<!-- BM_LowerBound/262144               90.4 ns         90.1 ns      7864320 -->
+<!-- BM_LowerBound/262144               90.5 ns         90.2 ns      7864320 -->
+<!-- BM_LowerBound/262144_mean          91.1 ns         90.8 ns           10 -->
+<!-- BM_LowerBound/262144_median        90.5 ns         90.2 ns           10 -->
+<!-- BM_LowerBound/262144_stddev        1.33 ns         1.32 ns           10 -->
+<!-- BM_LowerBound/262144_cv            1.46 %          1.45 %            10 -->
+<!-- BM_LowerBound/1048576               112 ns          112 ns      6291456 -->
+<!-- BM_LowerBound/1048576               141 ns          140 ns      6291456 -->
+<!-- BM_LowerBound/1048576               118 ns          118 ns      6291456 -->
+<!-- BM_LowerBound/1048576               108 ns          108 ns      6291456 -->
+<!-- BM_LowerBound/1048576               134 ns          133 ns      6291456 -->
+<!-- BM_LowerBound/1048576               108 ns          108 ns      6291456 -->
+<!-- BM_LowerBound/1048576               112 ns          112 ns      6291456 -->
+<!-- BM_LowerBound/1048576               113 ns          113 ns      6291456 -->
+<!-- BM_LowerBound/1048576               113 ns          113 ns      6291456 -->
+<!-- BM_LowerBound/1048576               112 ns          111 ns      6291456 -->
+<!-- BM_LowerBound/1048576_mean          117 ns          117 ns           10 -->
+<!-- BM_LowerBound/1048576_median        113 ns          112 ns           10 -->
+<!-- BM_LowerBound/1048576_stddev       11.2 ns         11.1 ns           10 -->
+<!-- BM_LowerBound/1048576_cv           9.52 %          9.51 %            10 -->
+<!-- RUNNING: ./build/Release/lower_bound --benchmark_repetitions=10 --benchmark_out=/tmp/tmp8sfgil6s -->
+<!-- 2022-09-07T12:46:02-07:00 -->
+<!-- Running ./build/Release/lower_bound -->
+<!-- Run on (4 X 2494.26 MHz CPU s) -->
+<!-- CPU Caches: -->
+<!--   L1 Data 32 KiB (x2) -->
+<!--   L1 Instruction 32 KiB (x2) -->
+<!--   L2 Unified 256 KiB (x2) -->
+<!--   L3 Unified 3072 KiB (x1) -->
+<!-- Load Average: 1.07, 1.01, 0.95 -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- Benchmark                             Time             CPU   Iterations -->
+<!-- ----------------------------------------------------------------------- -->
+<!-- BM_LowerBound/8                    5.65 ns         5.64 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.65 ns         5.64 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.70 ns         5.69 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.65 ns         5.64 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.66 ns         5.64 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.68 ns         5.66 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.68 ns         5.67 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.66 ns         5.65 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.68 ns         5.66 ns    123227648 -->
+<!-- BM_LowerBound/8                    5.70 ns         5.68 ns    123227648 -->
+<!-- BM_LowerBound/8_mean               5.67 ns         5.66 ns           10 -->
+<!-- BM_LowerBound/8_median             5.67 ns         5.65 ns           10 -->
+<!-- BM_LowerBound/8_stddev            0.019 ns        0.018 ns           10 -->
+<!-- BM_LowerBound/8_cv                 0.34 %          0.32 %            10 -->
+<!-- BM_LowerBound/64                   9.07 ns         9.02 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.90 ns         8.88 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.88 ns         8.86 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.96 ns         8.93 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.93 ns         8.90 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.91 ns         8.88 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.92 ns         8.89 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.92 ns         8.89 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.88 ns         8.85 ns     71946048 -->
+<!-- BM_LowerBound/64                   8.92 ns         8.90 ns     71946048 -->
+<!-- BM_LowerBound/64_mean              8.93 ns         8.90 ns           10 -->
+<!-- BM_LowerBound/64_median            8.92 ns         8.89 ns           10 -->
+<!-- BM_LowerBound/64_stddev           0.055 ns        0.048 ns           10 -->
+<!-- BM_LowerBound/64_cv                0.62 %          0.54 %            10 -->
+<!-- BM_LowerBound/512                  14.0 ns         13.9 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.7 ns         13.7 ns     49075712 -->
+<!-- BM_LowerBound/512                  15.5 ns         15.4 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.9 ns         13.8 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.8 ns         13.8 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.8 ns         13.7 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.7 ns         13.6 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.8 ns         13.8 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.7 ns         13.7 ns     49075712 -->
+<!-- BM_LowerBound/512                  13.8 ns         13.8 ns     49075712 -->
+<!-- BM_LowerBound/512_mean             14.0 ns         13.9 ns           10 -->
+<!-- BM_LowerBound/512_median           13.8 ns         13.8 ns           10 -->
+<!-- BM_LowerBound/512_stddev          0.535 ns        0.514 ns           10 -->
+<!-- BM_LowerBound/512_cv               3.83 %          3.69 %            10 -->
+<!-- BM_LowerBound/4096                 16.9 ns         16.8 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888 -->
+<!-- BM_LowerBound/4096                 17.3 ns         17.1 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.9 ns         16.8 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.9 ns         16.8 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.7 ns         16.7 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.7 ns         16.7 ns     38821888 -->
+<!-- BM_LowerBound/4096                 16.8 ns         16.7 ns     38821888 -->
+<!-- BM_LowerBound/4096_mean            16.8 ns         16.8 ns           10 -->
+<!-- BM_LowerBound/4096_median          16.8 ns         16.7 ns           10 -->
+<!-- BM_LowerBound/4096_stddev         0.155 ns        0.137 ns           10 -->
+<!-- BM_LowerBound/4096_cv              0.92 %          0.81 %            10 -->
+<!-- BM_LowerBound/32768                20.9 ns         20.8 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.7 ns         20.7 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.6 ns         20.5 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.5 ns         20.5 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.5 ns         20.4 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.6 ns         20.5 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.6 ns         20.5 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.5 ns         20.4 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.8 ns         20.7 ns     29065216 -->
+<!-- BM_LowerBound/32768                20.9 ns         20.8 ns     29065216 -->
+<!-- BM_LowerBound/32768_mean           20.7 ns         20.6 ns           10 -->
+<!-- BM_LowerBound/32768_median         20.6 ns         20.5 ns           10 -->
+<!-- BM_LowerBound/32768_stddev        0.172 ns        0.158 ns           10 -->
+<!-- BM_LowerBound/32768_cv             0.83 %          0.77 %            10 -->
+<!-- BM_LowerBound/262144               54.8 ns         54.6 ns     14155776 -->
+<!-- BM_LowerBound/262144               53.5 ns         53.3 ns     14155776 -->
+<!-- BM_LowerBound/262144               50.2 ns         50.1 ns     14155776 -->
+<!-- BM_LowerBound/262144               54.3 ns         54.2 ns     14155776 -->
+<!-- BM_LowerBound/262144               49.7 ns         49.5 ns     14155776 -->
+<!-- BM_LowerBound/262144               49.5 ns         49.2 ns     14155776 -->
+<!-- BM_LowerBound/262144               49.4 ns         49.3 ns     14155776 -->
+<!-- BM_LowerBound/262144               49.4 ns         49.2 ns     14155776 -->
+<!-- BM_LowerBound/262144               49.8 ns         49.7 ns     14155776 -->
+<!-- BM_LowerBound/262144               49.4 ns         49.2 ns     14155776 -->
+<!-- BM_LowerBound/262144_mean          51.0 ns         50.8 ns           10 -->
+<!-- BM_LowerBound/262144_median        49.8 ns         49.6 ns           10 -->
+<!-- BM_LowerBound/262144_stddev        2.24 ns         2.25 ns           10 -->
+<!-- BM_LowerBound/262144_cv            4.39 %          4.42 %            10 -->
+<!-- BM_LowerBound/1048576              72.2 ns         72.0 ns     10485760 -->
+<!-- BM_LowerBound/1048576              74.0 ns         73.8 ns     10485760 -->
+<!-- BM_LowerBound/1048576              75.2 ns         74.9 ns     10485760 -->
+<!-- BM_LowerBound/1048576              75.0 ns         74.5 ns     10485760 -->
+<!-- BM_LowerBound/1048576              77.6 ns         77.3 ns     10485760 -->
+<!-- BM_LowerBound/1048576              72.8 ns         72.6 ns     10485760 -->
+<!-- BM_LowerBound/1048576              73.2 ns         73.0 ns     10485760 -->
+<!-- BM_LowerBound/1048576              73.5 ns         73.3 ns     10485760 -->
+<!-- BM_LowerBound/1048576              73.6 ns         73.4 ns     10485760 -->
+<!-- BM_LowerBound/1048576              73.3 ns         73.1 ns     10485760 -->
+<!-- BM_LowerBound/1048576_mean         74.1 ns         73.8 ns           10 -->
+<!-- BM_LowerBound/1048576_median       73.6 ns         73.3 ns           10 -->
+<!-- BM_LowerBound/1048576_stddev       1.56 ns         1.51 ns           10 -->
+<!-- BM_LowerBound/1048576_cv           2.11 %          2.04 %            10 -->
+<!-- Comparing ./build_clang/Release/lower_bound to ./build/Release/lower_bound -->
+<!-- Benchmark                                      Time             CPU      Time Old      Time New       CPU Old       CPU New -->
+<!-- --------------------------------------------------------------------------------------------------------------------------- -->
+<!-- BM_LowerBound/8                             +0.0662         +0.0697             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0655         +0.0697             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0297         +0.0336             6             6             6             6 -->
+<!-- BM_LowerBound/8                             +0.0654         +0.0669             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0645         +0.0662             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0547         +0.0568             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0720         +0.0736             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0744         +0.0751             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0328         +0.0358             5             6             5             6 -->
+<!-- BM_LowerBound/8                             +0.0740         +0.0774             5             6             5             6 -->
+<!-- BM_LowerBound/8_pvalue                       0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/8_mean                        +0.0597         +0.0623             5             6             5             6 -->
+<!-- BM_LowerBound/8_median                      +0.0687         +0.0706             5             6             5             6 -->
+<!-- BM_LowerBound/8_stddev                      -0.7901         -0.7966             0             0             0             0 -->
+<!-- BM_LowerBound/8_cv                          -0.8019         -0.8085             0             0             0             0 -->
+<!-- BM_LowerBound/64                            -0.1962         -0.1968            11             9            11             9 -->
+<!-- BM_LowerBound/64                            -0.1844         -0.1839            11             9            11             9 -->
+<!-- BM_LowerBound/64                            -0.1849         -0.1839            11             9            11             9 -->
+<!-- BM_LowerBound/64                            -0.1736         -0.1740            11             9            11             9 -->
+<!-- BM_LowerBound/64                            -0.1552         -0.1540            11             9            11             9 -->
+<!-- BM_LowerBound/64                            -0.1449         -0.1441            10             9            10             9 -->
+<!-- BM_LowerBound/64                            -0.1542         -0.1542            11             9            11             9 -->
+<!-- BM_LowerBound/64                            -0.1453         -0.1450            10             9            10             9 -->
+<!-- BM_LowerBound/64                            -0.1340         -0.1337            10             9            10             9 -->
+<!-- BM_LowerBound/64                            -0.1500         -0.1495            10             9            10             9 -->
+<!-- BM_LowerBound/64_pvalue                      0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/64_mean                       -0.1628         -0.1625            11             9            11             9 -->
+<!-- BM_LowerBound/64_median                     -0.1554         -0.1547            11             9            11             9 -->
+<!-- BM_LowerBound/64_stddev                     -0.8225         -0.8439             0             0             0             0 -->
+<!-- BM_LowerBound/64_cv                         -0.7879         -0.8136             0             0             0             0 -->
+<!-- BM_LowerBound/512                           -0.5057         -0.5056            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5134         -0.5135            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.4519         -0.4541            28            15            28            15 -->
+<!-- BM_LowerBound/512                           -0.5073         -0.5091            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5107         -0.5108            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5105         -0.5108            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5158         -0.5158            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5084         -0.5086            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5118         -0.5117            28            14            28            14 -->
+<!-- BM_LowerBound/512                           -0.5100         -0.5098            28            14            28            14 -->
+<!-- BM_LowerBound/512_pvalue                     0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/512_mean                      -0.5046         -0.5050            28            14            28            14 -->
+<!-- BM_LowerBound/512_median                    -0.5106         -0.5106            28            14            28            14 -->
+<!-- BM_LowerBound/512_stddev                    +7.0911         +7.1346             0             1             0             1 -->
+<!-- BM_LowerBound/512_cv                       +15.3312        +15.4326             0             0             0             0 -->
+<!-- BM_LowerBound/4096                          -0.5949         -0.5954            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.5986         -0.5987            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.5917         -0.5915            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.5965         -0.5966            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.6044         -0.6037            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.5976         -0.5977            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.5978         -0.5977            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.6001         -0.5999            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.6010         -0.6008            42            17            42            17 -->
+<!-- BM_LowerBound/4096                          -0.5993         -0.5993            42            17            42            17 -->
+<!-- BM_LowerBound/4096_pvalue                    0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/4096_mean                     -0.5982         -0.5981            42            17            42            17 -->
+<!-- BM_LowerBound/4096_median                   -0.5991         -0.5991            42            17            42            17 -->
+<!-- BM_LowerBound/4096_stddev                   -0.3065         -0.2585             0             0             0             0 -->
+<!-- BM_LowerBound/4096_cv                       +0.7259         +0.8451             0             0             0             0 -->
+<!-- BM_LowerBound/32768                         -0.6120         -0.6124            54            21            54            21 -->
+<!-- BM_LowerBound/32768                         -0.6435         -0.6432            58            21            58            21 -->
+<!-- BM_LowerBound/32768                         -0.6173         -0.6173            54            21            54            21 -->
+<!-- BM_LowerBound/32768                         -0.6220         -0.6220            54            21            54            20 -->
+<!-- BM_LowerBound/32768                         -0.6220         -0.6220            54            20            54            20 -->
+<!-- BM_LowerBound/32768                         -0.6157         -0.6157            54            21            53            21 -->
+<!-- BM_LowerBound/32768                         -0.6173         -0.6169            54            21            53            20 -->
+<!-- BM_LowerBound/32768                         -0.6176         -0.6177            54            21            53            20 -->
+<!-- BM_LowerBound/32768                         -0.6135         -0.6136            54            21            54            21 -->
+<!-- BM_LowerBound/32768                         -0.6107         -0.6114            54            21            54            21 -->
+<!-- BM_LowerBound/32768_pvalue                   0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/32768_mean                    -0.6194         -0.6194            54            21            54            21 -->
+<!-- BM_LowerBound/32768_median                  -0.6176         -0.6178            54            21            54            21 -->
+<!-- BM_LowerBound/32768_stddev                  -0.8748         -0.8834             1             0             1             0 -->
+<!-- BM_LowerBound/32768_cv                      -0.6711         -0.6935             0             0             0             0 -->
+<!-- BM_LowerBound/262144                        -0.4174         -0.4170            94            55            94            55 -->
+<!-- BM_LowerBound/262144                        -0.4231         -0.4231            93            53            92            53 -->
+<!-- BM_LowerBound/262144                        -0.4417         -0.4416            90            50            90            50 -->
+<!-- BM_LowerBound/262144                        -0.4076         -0.4075            92            54            91            54 -->
+<!-- BM_LowerBound/262144                        -0.4485         -0.4491            90            50            90            50 -->
+<!-- BM_LowerBound/262144                        -0.4510         -0.4522            90            49            90            49 -->
+<!-- BM_LowerBound/262144                        -0.4550         -0.4551            91            49            90            49 -->
+<!-- BM_LowerBound/262144                        -0.4546         -0.4547            91            49            90            49 -->
+<!-- BM_LowerBound/262144                        -0.4491         -0.4492            90            50            90            50 -->
+<!-- BM_LowerBound/262144                        -0.4546         -0.4541            91            49            90            49 -->
+<!-- BM_LowerBound/262144_pvalue                  0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/262144_mean                   -0.4401         -0.4402            91            51            91            51 -->
+<!-- BM_LowerBound/262144_median                 -0.4505         -0.4505            91            50            90            50 -->
+<!-- BM_LowerBound/262144_stddev                 +0.6832         +0.7082             1             2             1             2 -->
+<!-- BM_LowerBound/262144_cv                     +2.0061         +2.0514             0             0             0             0 -->
+<!-- BM_LowerBound/1048576                       -0.3574         -0.3569           112            72           112            72 -->
+<!-- BM_LowerBound/1048576                       -0.4747         -0.4742           141            74           140            74 -->
+<!-- BM_LowerBound/1048576                       -0.3650         -0.3662           118            75           118            75 -->
+<!-- BM_LowerBound/1048576                       -0.3063         -0.3082           108            75           108            75 -->
+<!-- BM_LowerBound/1048576                       -0.4197         -0.4205           134            78           133            77 -->
+<!-- BM_LowerBound/1048576                       -0.3255         -0.3258           108            73           108            73 -->
+<!-- BM_LowerBound/1048576                       -0.3488         -0.3479           112            73           112            73 -->
+<!-- BM_LowerBound/1048576                       -0.3497         -0.3494           113            74           113            73 -->
+<!-- BM_LowerBound/1048576                       -0.3490         -0.3483           113            74           113            73 -->
+<!-- BM_LowerBound/1048576                       -0.3448         -0.3445           112            73           111            73 -->
+<!-- BM_LowerBound/1048576_pvalue                 0.0002          0.0002      U Test, Repetitions: 10 vs 10 -->
+<!-- BM_LowerBound/1048576_mean                  -0.3682         -0.3683           117            74           117            74 -->
+<!-- BM_LowerBound/1048576_median                -0.3475         -0.3468           113            74           112            73 -->
+<!-- BM_LowerBound/1048576_stddev                -0.8601         -0.8644            11             2            11             2 -->
+<!-- BM_LowerBound/1048576_cv                    -0.7785         -0.7853             0             0             0             0 -->
+<!-- OVERALL_GEOMEAN                             -0.4307         -0.4301             0             0             0             0 -->
+<!-- ``` -->
