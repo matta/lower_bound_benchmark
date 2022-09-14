@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
 set -x
-set -e
-set -u
 
 ./build.sh
 
 function run_bench() {
     compiler=$1
     benchmark=build_${compiler}/Release/lower_bound
-    out=results/${compiler}.json
     mkdir -p results
-    taskset -c 0 \
-            $benchmark \
-            --benchmark_out=$out \
-            --benchmark_out_format=json \
-            --benchmark_repetitions=20 \
-            --benchmark_context=compiler=$compiler
+    out=results/${compiler}.json
+    log=results/${compiler}.log
+    (taskset -c 0 \
+             $benchmark \
+             --benchmark_out=$out \
+             --benchmark_out_format=json \
+             --benchmark_repetitions=20 \
+             --benchmark_context=compiler=$compiler) |& \
+        tee $log
 }
 
 run_bench gcc
