@@ -1,4 +1,4 @@
-#include "lower_bound.hxx"
+#include "lower_bound.h"
 
 namespace lower_bound {
 

@@ -72,9 +72,9 @@ FetchContent_MakeAvailable(
   googlebenchmark
 )
 
-add_library(lower_bound STATIC lower_bound.cxx)
+add_library(lower_bound STATIC lower_bound.cpp)
 
-add_executable(lower_bound_benchmark lower_bound_benchmark.cxx)
+add_executable(lower_bound_benchmark lower_bound_benchmark.cpp)
 target_link_libraries(lower_bound_benchmark lower_bound benchmark::benchmark)
 add_test(
   NAME lower_bound_benchmark
@@ -83,7 +83,7 @@ add_test(
   --benchmark_filter=/4$
   --benchmark_min_time=0.025)
 
-add_executable(lower_bound_test lower_bound_test.cxx)
+add_executable(lower_bound_test lower_bound_test.cpp)
 target_link_libraries(lower_bound_test lower_bound GTest::gmock_main)
 include(GoogleTest)
 gtest_discover_tests(lower_bound_test)

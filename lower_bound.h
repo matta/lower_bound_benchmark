@@ -1,5 +1,5 @@
-#ifndef LOWER_BOUND_HXX
-#define LOWER_BOUND_HXX
+#ifndef LOWER_BOUND_H
+#define LOWER_BOUND_H
 
 // ATTRIBUTE_NOIPA disables inline, interprocedural optimizations, etc.
 // When compiling with gcc this macro expands to the "noipa" attribute.  On

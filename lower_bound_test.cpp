@@ -1,8 +1,8 @@
-#include "lower_bound_test.hxx"
+#include "lower_bound_test.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lower_bound.hxx"
+#include "lower_bound.h"
 
 namespace {
 

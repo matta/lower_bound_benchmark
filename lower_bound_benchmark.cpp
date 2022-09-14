@@ -1,6 +1,4 @@
 // Benchmark for a "lower bound" search on a binary tree.
-#include "lower_bound.hxx"
-
 #include <functional>
 #include <iostream>
 #include <random>
@@ -8,7 +6,8 @@
 #include <sstream>
 
 #include "benchmark/benchmark.h"
-#include "lower_bound_test.hxx"
+#include "lower_bound.h"
+#include "lower_bound_test.h"
 
 namespace lower_bound {
 namespace {
