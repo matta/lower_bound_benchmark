@@ -15,5 +15,6 @@ pkgs.mkShell {
 
     # Various utilities
     pkgs.entr
+    pkgs.util-linux # for taskset
   ];
 }
