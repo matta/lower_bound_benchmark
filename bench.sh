@@ -7,7 +7,7 @@ set -x
 
 function run_bench() {
     compiler=$1
-    benchmark=build_${compiler}/Release/lower_bound
+    benchmark=build_${compiler}/Release/lower_bound_benchmark
     mkdir -p results
     out=results/${compiler}.json
     log=results/${compiler}.log
@@ -15,7 +15,7 @@ function run_bench() {
              $benchmark \
              --benchmark_out=$out \
              --benchmark_out_format=json \
-             --benchmark_repetitions=20 \
+             --benchmark_repetitions=10 \
              --benchmark_context=compiler=$compiler) |& \
         tee $log
 }
