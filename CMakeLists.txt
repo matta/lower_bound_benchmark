@@ -81,4 +81,6 @@ FetchContent_MakeAvailable(
 # add the executable
 add_executable(lower_bound lower_bound.cxx)
 target_link_libraries(lower_bound benchmark::benchmark doctest)
-add_test(NAME lower_bound COMMAND lower_bound --benchmark_filter=/4$)
+add_test(
+  NAME lower_bound
+  COMMAND lower_bound --benchmark_filter=/5$ --benchmark_min_time=0.01)
