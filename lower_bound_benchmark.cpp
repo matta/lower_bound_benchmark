@@ -242,18 +242,12 @@ void RegisterAll() {
           os.str().c_str(), [layout, access](benchmark::State& state) {
             BM_LowerBound(state, layout, access);
           });
-      const bool kRegisterAllHeights = true;
-      if (kRegisterAllHeights) {
-        for (int height = 1; height <= 30; ++height) {
-          benchmark->Arg(height);
-          if (Fixture::EstimateWorkingSetBytes(NodesForHeight(height))
-              >= target_working_set_size) {
-            break;
-          }
+      for (int height = 1; height <= 30; ++height) {
+        benchmark->Arg(height);
+        if (Fixture::EstimateWorkingSetBytes(NodesForHeight(height)) >=
+            target_working_set_size) {
+          break;
         }
-      } else {
-        benchmark->RangeMultiplier(2);
-        benchmark->Range(2, 24);
       }
     }
   }
