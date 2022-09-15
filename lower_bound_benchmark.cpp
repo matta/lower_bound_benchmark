@@ -169,10 +169,29 @@ void BM_LowerBound(benchmark::State& state, MemoryLayout layout,
     return;
   }
 
-  Node* root = fixture.root;
-  while (state.KeepRunningBatch(fixture.keys.size())) {
-    for (int key : fixture.keys) {
-      benchmark::DoNotOptimize(LowerBound(root, key));
+  Node* const root = fixture.root;
+  if (false) {
+    while (state.KeepRunningBatch(fixture.keys.size())) {
+      for (int key : fixture.keys) {
+        benchmark::DoNotOptimize(LowerBound(root, key));
+      }
+    }
+  } else {
+    const std::size_t kMaxBatchSize = 100000;
+    const std::size_t kBatchSize =
+        std::min<std::size_t>(fixture.keys.size(), kMaxBatchSize);
+
+    const auto keys_end = fixture.keys.end();
+    auto it = fixture.keys.end();
+    while (state.KeepRunningBatch(kBatchSize)) {
+      if (it == keys_end) {
+        it = fixture.keys.begin();
+      }
+      auto batch_end = it + std::min<std::size_t>(kBatchSize, keys_end - it);
+      while (it != batch_end) {
+        benchmark::DoNotOptimize(LowerBound(root, *it));
+        it++;
+      }
     }
   }
 
