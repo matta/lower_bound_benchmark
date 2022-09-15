@@ -157,12 +157,9 @@ struct Fixture {
     // Ensure that we can format the tree.
     DCHECK(TreeDebugString(root) != "hello world");
   }
-
 };
 
-int NodesForHeight(int height) {
-  return (1U << height) - 1;
-}
+int NodesForHeight(int height) { return (1U << height) - 1; }
 
 void BM_LowerBound(benchmark::State& state, MemoryLayout layout,
                    AccessPattern access_pattern) {
