@@ -27,6 +27,8 @@ from running the benchmark and some other workload concurrently.
 
 I have not yet explored using https://github.com/lpechacek/cpuset to
 allocate specific sets of CPUs and/or NUMA memory to benchmarks.
+
+Credit and inspiration to https://llvm.org/docs/Benchmarking.html.
 """
 import os
 from typing import List, Set
