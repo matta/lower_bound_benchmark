@@ -198,7 +198,7 @@ void RegisterAll() {
           os.str().c_str(), [layout, access](benchmark::State& state) {
             BM_LowerBound(state, layout, access);
           });
-      const bool kRegisterAllHeights = false;
+      const bool kRegisterAllHeights = true;
       if (kRegisterAllHeights) {
         for (int height = 1; height <= 24; ++height) {
           benchmark->Arg(height);
