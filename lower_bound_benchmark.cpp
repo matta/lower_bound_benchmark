@@ -5,6 +5,7 @@
 #include <span>
 #include <sstream>
 
+#include "absl/random/random.h"
 #include "benchmark/benchmark.h"
 #include "lower_bound.h"
 #include "lower_bound_test.h"
@@ -98,6 +99,7 @@ struct Fixture {
                           AccessPattern access_pattern) {
     nodes.resize(key_count);
 
+    absl::BitGen bitgen;
     root = nullptr;
     switch (layout) {
       case MemoryLayout::kAscending: {
@@ -105,7 +107,7 @@ struct Fixture {
         break;
       }
       case MemoryLayout::kRandom: {
-        root = LayoutAtRandom(nodes, /* seed= */ 17);
+        root = LayoutAtRandom(nodes, bitgen);
         break;
       }
     }
@@ -127,7 +129,7 @@ struct Fixture {
       case AccessPattern::kAscending:
         break;
       case AccessPattern::kRandom:
-        std::shuffle(keys.begin(), keys.end(), std::minstd_rand0(42));
+        std::shuffle(keys.begin(), keys.end(), bitgen);
         break;
     }
 

@@ -57,9 +57,16 @@ set(BENCHMARK_ENABLE_TESTING OFF)
 # -Werror=restrict that occurs only with C++20 enabled.
 set(BENCHMARK_ENABLE_WERROR OFF)
 
-FetchContent_Declare(googlebenchmark
-  GIT_REPOSITORY https://github.com/google/benchmark.git
-  GIT_TAG 49aa374da96199d64fd3de9673b6f405bbc3de3e
+# Quell a warning in Abseil's cmake: "Make Warning at
+# build_gcc/_deps/abseil-src/CMakeLists.txt:72 (message): A future Abseil
+# release will default ABSL_PROPAGATE_CXX_STD to ON for CMake 3.8 and up.
+# We recommend enabling this option to ensure your project still builds
+# correctly."
+set(ABSL_PROPAGATE_CXX_STD ON)
+
+FetchContent_Declare(abseil
+  GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+  GIT_TAG d423ac0ef052bd7b6fc53fd1a026a44e1713d993
 )
 
 FetchContent_Declare(googletest
@@ -67,7 +74,13 @@ FetchContent_Declare(googletest
   GIT_TAG 1336c4b6d1a6f4bc6beebccb920e5ff858889292
 )
 
+FetchContent_Declare(googlebenchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG 49aa374da96199d64fd3de9673b6f405bbc3de3e
+)
+
 FetchContent_MakeAvailable(
+  abseil
   googletest
   googlebenchmark
 )
@@ -75,7 +88,13 @@ FetchContent_MakeAvailable(
 add_library(lower_bound STATIC lower_bound.cpp)
 
 add_executable(lower_bound_benchmark lower_bound_benchmark.cpp)
-target_link_libraries(lower_bound_benchmark lower_bound benchmark::benchmark)
+target_link_libraries(
+  lower_bound_benchmark
+  lower_bound
+  benchmark::benchmark
+  absl::random_bit_gen_ref
+  absl::random_random
+)
 add_test(
   NAME lower_bound_benchmark
   COMMAND
@@ -84,6 +103,10 @@ add_test(
   --benchmark_min_time=0.025)
 
 add_executable(lower_bound_test lower_bound_test.cpp)
-target_link_libraries(lower_bound_test lower_bound GTest::gmock_main)
+target_link_libraries(lower_bound_test
+  lower_bound
+  absl::random_bit_gen_ref
+  absl::random_random
+  GTest::gmock_main)
 include(GoogleTest)
 gtest_discover_tests(lower_bound_test)

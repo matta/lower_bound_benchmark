@@ -11,6 +11,7 @@
 #include <sstream>
 #include <vector>
 
+#include "absl/random/bit_gen_ref.h"
 #include "lower_bound.h"
 
 namespace lower_bound {
@@ -174,14 +175,14 @@ inline Node* LayoutAtRandomRecur(int maximum_height, std::span<int> mapping,
 //
 // The location of nodes within the tree are chosen with uniform
 // randomness.
-inline Node* LayoutAtRandom(std::span<Node> nodes, int seed) {
+inline Node* LayoutAtRandom(std::span<Node> nodes, absl::BitGenRef bitgen) {
   const int maximum_height = HeightForCount(nodes.size());
 
   std::vector<int> mapping;
   for (int i = 0; i < nodes.size(); ++i) {
     mapping.push_back(i);
   }
-  std::shuffle(mapping.begin(), mapping.end(), std::minstd_rand0(seed));
+  std::shuffle(mapping.begin(), mapping.end(), bitgen);
 
   int next_key = 1;
   int next_index = 0;

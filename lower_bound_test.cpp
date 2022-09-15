@@ -1,5 +1,6 @@
 #include "lower_bound_test.h"
 
+#include "absl/random/random.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lower_bound.h"
@@ -112,27 +113,27 @@ TEST(LowerBound, LayoutAtRandom) {
   //
   // A random layout of this tree will place the nodes in arbitrary order
   // within the node array.  Test this by generating multiple permutations,
-  // using different seeds, and ensure they are all different.
+  // using different seeds, and ensure they are different enough.
 
-  std::vector<std::vector<int>> layouts;
-  for (int seed = 17; layouts.size() != 32; seed += 17) {
-    std::vector<Node> nodes(7);
-    EXPECT_EQ(HeightForCount(nodes.size()), 3);
+  const int kGenerateCount = 100;
+  absl::BitGen bitgen;
+  std::map<std::vector<int>, int> distinct_layouts;
+  for (int i = 0; i < kGenerateCount; ++i) {
+    std::vector<Node> nodes(15);
+    EXPECT_EQ(HeightForCount(nodes.size()), 4);
 
-    Node* root = LayoutAtRandom(nodes, seed);
+    Node* root = LayoutAtRandom(nodes, bitgen);
     std::vector<int> in_order_keys = KeysInOrder(root);
-    EXPECT_THAT(in_order_keys, ElementsAre(1, 2, 3, 4, 5, 6, 7));
+    EXPECT_THAT(in_order_keys, ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                           12, 13, 14, 15));
 
-    layouts.push_back(KeysInLayoutOrder(nodes));
-    for (int i = 0; i < layouts.size(); ++i) {
-      for (int j = i + 1; j < layouts.size(); ++j) {
-        EXPECT_THAT(layouts[i], Not(ContainerEq(layouts[j])))
-            << "; when i=" << i << " j=" << j;
-      }
-    }
-
-    ++seed;
+    ++distinct_layouts[KeysInLayoutOrder(nodes)];
   }
+
+  // The birthday paradox implies a realtively high chance that we'll see
+  // duplicate layouts, though I have seen only one duplicate in practice.
+  const int kMaxDuplicates = 1;
+  EXPECT_GE(distinct_layouts.size(), kGenerateCount - kMaxDuplicates);
 }
 
 }  // namespace
