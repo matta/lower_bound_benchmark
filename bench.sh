@@ -5,12 +5,15 @@ set -x
 
 ./build.sh
 
+. ./benchlib.sh
+
 function run_bench() {
     compiler=$1
     benchmark=build_${compiler}/Release/lower_bound_benchmark
     mkdir -p results
-    out=results/${compiler}.json
-    log=results/${compiler}.log
+    set -x
+    out=${outfiles[${compiler}]}
+    log=${logfiles[${compiler}]}
     (taskset -c 0 \
              $benchmark \
              --benchmark_out=$out \
