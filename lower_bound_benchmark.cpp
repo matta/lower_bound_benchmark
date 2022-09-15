@@ -95,6 +95,14 @@ struct Fixture {
   std::vector<int> keys;
   Node* root;
 
+  static int EstimateWorkingSetBytes(int key_count) {
+    return key_count * sizeof(Node) + key_count * sizeof(int);
+  }
+
+  size_t WorkingSetBytes() {
+    return nodes.size() * sizeof(nodes[0]) + keys.size() * sizeof(keys[0]);
+  }
+
   ATTRIBUTE_NOIPA Fixture(int key_count, MemoryLayout layout,
                           AccessPattern access_pattern) {
     nodes.resize(key_count);
@@ -149,16 +157,17 @@ struct Fixture {
     assert(TreeDebugString(root) != "hello world");
   }
 
-  size_t WorkingSetBytes() {
-    return nodes.size() * sizeof(nodes[0]) + keys.size() * sizeof(keys[0]);
-  }
 };
+
+int NodesForHeight(int height) {
+  return (1U << height) - 1;
+}
 
 void BM_LowerBound(benchmark::State& state, MemoryLayout layout,
                    AccessPattern access_pattern) {
   TreeProperties expected;
   expected.height = state.range(0);
-  expected.size = (1U << expected.height) - 1;
+  expected.size = NodesForHeight(expected.height);
   Fixture fixture(expected.size, layout, access_pattern);
   TreeProperties actual = ComputeTreeProperties(fixture.root);
   if (expected.height != actual.height || expected.size != actual.size) {
@@ -208,7 +217,20 @@ void BM_LowerBound(benchmark::State& state, MemoryLayout layout,
       benchmark::Counter::kDefaults, benchmark::Counter::kIs1024);
 }
 
+int MaxCacheSize() {
+  using benchmark::CPUInfo;
+
+  int max_cache_size = 0;
+  for (const CPUInfo::CacheInfo& info : CPUInfo::Get().caches) {
+    max_cache_size = std::max(max_cache_size, info.size);
+  }
+  return max_cache_size;
+}
+
 void RegisterAll() {
+  int max_cache_size = MaxCacheSize();
+  int target_working_set_size = max_cache_size * 10;
+
   for (MemoryLayout layout :
        {MemoryLayout::kAscending, MemoryLayout::kRandom}) {
     for (AccessPattern access :
@@ -221,8 +243,12 @@ void RegisterAll() {
           });
       const bool kRegisterAllHeights = true;
       if (kRegisterAllHeights) {
-        for (int height = 1; height <= 24; ++height) {
+        for (int height = 1; height <= 30; ++height) {
           benchmark->Arg(height);
+          if (Fixture::EstimateWorkingSetBytes(NodesForHeight(height))
+              >= target_working_set_size) {
+            break;
+          }
         }
       } else {
         benchmark->RangeMultiplier(2);
