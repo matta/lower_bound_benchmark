@@ -125,86 +125,34 @@ inline std::string TreeDebugString(Node* node) {
   return os.str();
 }
 
-inline std::vector<int> KeysInSymmetricOrder(const Node* root) {
+inline std::vector<int> KeysInOrder(const Node* root) {
   std::vector<int> keys;
   VisitInOrder(root, [&](const Node* node) { keys.push_back(node->key); });
   return keys;
 }
 
-inline void KeysByLevelRecur(Node* node, int depth,
-                             std::span<const int> ordered_keys,
-                             std::span<int> offsets,
-                             std::vector<int>& keys_by_level) {
-  if (node == nullptr) {
-    return;
-  }
-  assert(depth < offsets.size());
-  int offset = offsets[depth]++;
-  assert(offset < keys_by_level.size());
-  keys_by_level[offset] = node->key;
-  KeysByLevelRecur(node->left, depth + 1, ordered_keys, offsets,
-                   keys_by_level);
-  KeysByLevelRecur(node->right, depth + 1, ordered_keys, offsets,
-                   keys_by_level);
-}
-
-inline std::vector<int> KeysByLevel(Node* root) {
-  const std::vector<int> ordered_keys = KeysInSymmetricOrder(root);
-  TreeProperties properties = ComputeTreeProperties(root);
-  std::vector<int> offsets = OffsetsForHeight(properties.height);
-  std::vector<int> keys_by_level;
-  keys_by_level.resize(ordered_keys.size());
-  KeysByLevelRecur(root, /* depth= */ 0, ordered_keys, offsets, keys_by_level);
-  return keys_by_level;
-}
-
-inline Node* LayoutInKeyOrderRecur(int& key, std::span<Node>::iterator& next,
-                                   std::span<Node>::iterator end,
-                                   int maximum_height) {
+inline Node* LayoutAscendingRecur(int& key, std::span<Node>::iterator& next,
+                                  std::span<Node>::iterator end,
+                                  int maximum_height) {
   if (next == end || maximum_height == 0) {
     return nullptr;
   }
-  Node* left = LayoutInKeyOrderRecur(key, next, end, maximum_height - 1);
+  Node* left = LayoutAscendingRecur(key, next, end, maximum_height - 1);
   Node* node = &*next++;
   node->left = left;
   node->key = key++;
-  node->right = LayoutInKeyOrderRecur(key, next, end, maximum_height - 1);
+  node->right = LayoutAscendingRecur(key, next, end, maximum_height - 1);
   return node;
 }
 
-inline Node* LayoutInKeyOrder(std::span<Node> nodes) {
+inline Node* LayoutAscending(std::span<Node> nodes) {
   int maximum_height = HeightForCount(nodes.size());
   int key = 1;
   std::span<Node>::iterator next = nodes.begin();
-  return LayoutInKeyOrderRecur(key, next, nodes.end(), maximum_height);
+  return LayoutAscendingRecur(key, next, nodes.end(), maximum_height);
 }
 
-inline Node* LayoutByNodeLevelRecur(int& next_key, std::vector<int>& offsets,
-                                    int depth, std::span<Node> nodes) {
-  if (depth == offsets.size()) {
-    return nullptr;
-  }
-
-  Node* left = LayoutByNodeLevelRecur(next_key, offsets, depth + 1, nodes);
-
-  int offset = offsets[depth]++;
-  if (offset >= nodes.size()) {
-    std::abort();
-  }
-
-  Node& node = nodes[offset];
-  node.key = next_key++;
-  node.left = left;
-  node.right = LayoutByNodeLevelRecur(next_key, offsets, depth + 1, nodes);
-  return &node;
-}
-
-inline Node* LayoutByNodeLevel(std::span<Node> nodes) {
-  std::vector<int> offsets = OffsetsForNodeCount(nodes.size());
-  int next_key = 1;
-  return LayoutByNodeLevelRecur(next_key, offsets, /* depth= */ 0, nodes);
-}
-
+// See LayoutAtRandom.
 inline Node* LayoutAtRandomRecur(int maximum_height, std::span<int> mapping,
                                  std::span<Node> nodes, int& next_key,
                                  int& next_index) {
@@ -221,6 +169,11 @@ inline Node* LayoutAtRandomRecur(int maximum_height, std::span<int> mapping,
   return &node;
 }
 
+// LayoutAtRandom populates 'nodes' with a complete binary tree with keys
+// ascending from 1 to the node count.  Return the trees root.
+//
+// The location of nodes within the tree are chosen with uniform
+// randomness.
 inline Node* LayoutAtRandom(std::span<Node> nodes, int seed) {
   const int maximum_height = HeightForCount(nodes.size());
 
@@ -234,15 +187,6 @@ inline Node* LayoutAtRandom(std::span<Node> nodes, int seed) {
   int next_index = 0;
   return LayoutAtRandomRecur(maximum_height, mapping, nodes, next_key,
                              next_index);
-}
-
-inline std::vector<int> KeysInLayoutOrder(std::span<const Node> nodes) {
-  std::vector<int> keys;
-  keys.reserve(nodes.size());
-  for (const Node& node : nodes) {
-    keys.push_back(node.key);
-  }
-  return keys;
 }
 
 }  // namespace lower_bound

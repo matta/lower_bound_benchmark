@@ -6,6 +6,15 @@
 
 namespace {
 
+std::vector<int> KeysInLayoutOrder(std::span<const lower_bound::Node> nodes) {
+  std::vector<int> keys;
+  keys.reserve(nodes.size());
+  for (const auto& node : nodes) {
+    keys.push_back(node.key);
+  }
+  return keys;
+}
+
 TEST(LowerBound, HeightForCount) {
   using lower_bound::HeightForCount;
 
@@ -54,7 +63,7 @@ TEST(LowerBound, BasicAssertions) {
   EXPECT_EQ(LowerBound(&root, 11), &root);
 }
 
-TEST(LowerBound, KeysByLevel) {
+TEST(LowerBound, LayoutAscending) {
   using lower_bound::HeightForCount;
   using lower_bound::Node;
   using testing::ElementsAre;
@@ -62,21 +71,8 @@ TEST(LowerBound, KeysByLevel) {
   std::vector<Node> nodes(7);
   EXPECT_EQ(HeightForCount(nodes.size()), 3);
 
-  Node* root = LayoutInKeyOrder(nodes);
-
-  EXPECT_THAT(KeysByLevel(root), ElementsAre(4, 2, 6, 1, 3, 5, 7));
-}
-
-TEST(LowerBound, LayoutInKeyOrder) {
-  using lower_bound::HeightForCount;
-  using lower_bound::Node;
-  using testing::ElementsAre;
-
-  std::vector<Node> nodes(7);
-  EXPECT_EQ(HeightForCount(nodes.size()), 3);
-
-  Node* root = LayoutInKeyOrder(nodes);
-  std::vector<int> in_order_keys = KeysInSymmetricOrder(root);
+  Node* root = LayoutAscending(nodes);
+  std::vector<int> in_order_keys = KeysInOrder(root);
   std::vector<int> layout_keys = KeysInLayoutOrder(nodes);
 
   // A complete tree of 7 nodes has this structure:
@@ -97,38 +93,6 @@ TEST(LowerBound, LayoutInKeyOrder) {
   EXPECT_EQ(nodes.back().key, 7);
   EXPECT_THAT(in_order_keys, ElementsAre(1, 2, 3, 4, 5, 6, 7));
   EXPECT_THAT(layout_keys, ElementsAre(1, 2, 3, 4, 5, 6, 7));
-}
-
-TEST(LowerBound, LayoutByNodeLevel) {
-  using lower_bound::HeightForCount;
-  using lower_bound::Node;
-  using testing::ElementsAre;
-
-  std::vector<Node> nodes(7);
-  EXPECT_EQ(HeightForCount(nodes.size()), 3);
-
-  Node* root = LayoutByNodeLevel(nodes);
-  std::vector<int> in_order_keys = KeysInSymmetricOrder(root);
-  std::vector<int> layout_keys = KeysInLayoutOrder(nodes);
-
-  // A complete tree of 7 nodes has this structure:
-  //
-  //             4
-  //           /   \
-  //          2     5
-  //         / \   / \
-  //        1   3 6   7
-  //
-  // The level ordered layout of this tree will place
-  // the nodes in the following order:
-  //
-  //   4 2 6 1 3 5 7
-  //
-  EXPECT_EQ(root->key, 4);
-  EXPECT_EQ(root, &nodes.front());
-  EXPECT_EQ(nodes.back().key, 7);
-  EXPECT_THAT(in_order_keys, ElementsAre(1, 2, 3, 4, 5, 6, 7));
-  EXPECT_THAT(layout_keys, ElementsAre(4, 2, 6, 1, 3, 5, 7));
 }
 
 TEST(LowerBound, LayoutAtRandom) {
@@ -156,7 +120,7 @@ TEST(LowerBound, LayoutAtRandom) {
     EXPECT_EQ(HeightForCount(nodes.size()), 3);
 
     Node* root = LayoutAtRandom(nodes, seed);
-    std::vector<int> in_order_keys = KeysInSymmetricOrder(root);
+    std::vector<int> in_order_keys = KeysInOrder(root);
     EXPECT_THAT(in_order_keys, ElementsAre(1, 2, 3, 4, 5, 6, 7));
 
     layouts.push_back(KeysInLayoutOrder(nodes));

@@ -43,61 +43,46 @@ std::string ContainerDebugString(const T& container) {
 // This benchmark always uses complete binary trees, where non-null nodes
 // always have either two non-null children or two null children.
 //
-// kByNodeLevel: nodes occur in level order within the array.  In other
-// words, the root is first, followed by the two nodes in the second level,
-// followed by the four nodes in the third level, and so on.  In this
-// approach the root of the tree is at index zero and the left and right
-// children of a node at index I is (2 * I + 1) and (2 * I + 2)
-// respectively.
+// kAscending: Nodes occur in memory with the same order as their
+// keys.
 //
-// kInKeyOrder: nodes are laid out order of their key values within the
+// kRandom: Nodes occur in a uniformly random order within the
 // array.
 //
-// kAtRandom: nodes occur in a random order within the array.
-//
 enum class MemoryLayout {
-  kByNodeLevel,
-  kInKeyOrder,
-  kAtRandom,
+  kAscending,
+  kRandom,
 };
 
 // AccessPattern names the sequence of keys accessed from the tree
 // (i.e. passed to LowerBound).
 //
-// kByNodeLevel: are accessed by ascending depth, left to right within each
-// level.
-//
-// kInOrdered: nodes are laid out order of their key values within the
+// kAscending: nodes are laid out order of their key values within the
 // array.
 //
 // kRandomOrdered: nodes occur in a random order within the array.
 //
 enum class AccessPattern {
-  kByNodeLevel,
-  kInKeyOrder,
-  kAtRandom,
+  kAscending,
+  kRandom,
 };
 
 std::ostream& operator<<(std::ostream& os, MemoryLayout layout) {
   switch (layout) {
-    case MemoryLayout::kByNodeLevel:
-      return os << "LayoutByNodeLevel";
-    case MemoryLayout::kInKeyOrder:
-      return os << "LayoutInKeyOrder";
-    case MemoryLayout::kAtRandom:
-      return os << "LayoutAtRandom";
+    case MemoryLayout::kAscending:
+      return os << "LayoutAscending";
+    case MemoryLayout::kRandom:
+      return os << "LayoutRandom";
   }
   return os << "MemoryLayout(" << static_cast<int>(layout) << ')';
 }
 
 std::ostream& operator<<(std::ostream& os, AccessPattern pattern) {
   switch (pattern) {
-    case AccessPattern::kByNodeLevel:
-      return os << "AccessByNodeLevel";
-    case AccessPattern::kInKeyOrder:
-      return os << "AccessInKeyOrder";
-    case AccessPattern::kAtRandom:
-      return os << "AccessAtRandom";
+    case AccessPattern::kAscending:
+      return os << "AccessAscending";
+    case AccessPattern::kRandom:
+      return os << "AccessRandom";
   }
   return os << "AccessPattern(" << static_cast<int>(pattern) << ')';
 }
@@ -115,15 +100,11 @@ struct Fixture {
 
     root = nullptr;
     switch (layout) {
-      case MemoryLayout::kInKeyOrder: {
-        root = LayoutInKeyOrder(nodes);
+      case MemoryLayout::kAscending: {
+        root = LayoutAscending(nodes);
         break;
       }
-      case MemoryLayout::kByNodeLevel: {
-        root = LayoutByNodeLevel(nodes);
-        break;
-      }
-      case MemoryLayout::kAtRandom: {
+      case MemoryLayout::kRandom: {
         root = LayoutAtRandom(nodes, /* seed= */ 17);
         break;
       }
@@ -131,23 +112,23 @@ struct Fixture {
     assert(root != nullptr);
 
     switch (access_pattern) {
-      case AccessPattern::kInKeyOrder:
-      case AccessPattern::kAtRandom:
-        keys = KeysInSymmetricOrder(root);
-        break;
-      case AccessPattern::kByNodeLevel:
-        keys = KeysByLevel(root);
+      case AccessPattern::kAscending:
+      case AccessPattern::kRandom:
+        keys = KeysInOrder(root);
         break;
     }
-
 
     constexpr int kUnroll = 32;
     while (keys.size() < kUnroll) {
       keys.reserve(keys.size() * 2);
       keys.insert(keys.end(), keys.begin(), keys.end());
     }
-    if (access_pattern == AccessPattern::kAtRandom) {
-      std::shuffle(keys.begin(), keys.end(), std::minstd_rand0(42));
+    switch (access_pattern) {
+      case AccessPattern::kAscending:
+        break;
+      case AccessPattern::kRandom:
+        std::shuffle(keys.begin(), keys.end(), std::minstd_rand0(42));
+        break;
     }
 
     // Ensure that every node has valid pointers.
@@ -208,11 +189,9 @@ void BM_LowerBound(benchmark::State& state, MemoryLayout layout,
 
 void RegisterAll() {
   for (MemoryLayout layout :
-       {MemoryLayout::kInKeyOrder, MemoryLayout::kByNodeLevel,
-        MemoryLayout::kAtRandom}) {
+       {MemoryLayout::kAscending, MemoryLayout::kRandom}) {
     for (AccessPattern access :
-         {AccessPattern::kInKeyOrder, AccessPattern::kByNodeLevel,
-          AccessPattern::kAtRandom}) {
+         {AccessPattern::kAscending, AccessPattern::kRandom}) {
       std::ostringstream os;
       os << "BM_LowerBound/" << layout << '/' << access;
       auto* benchmark = benchmark::RegisterBenchmark(
