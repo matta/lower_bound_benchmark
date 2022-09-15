@@ -1,7 +1,6 @@
 #ifndef LOWER_BOUND_TEST_H
 #define LOWER_BOUND_TEST_H
 
-#include <cassert>
 #include <concepts>
 #include <functional>
 #include <iostream>

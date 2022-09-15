@@ -5,6 +5,7 @@
 #include <span>
 #include <sstream>
 
+#include "absl/log/check.h"
 #include "absl/random/random.h"
 #include "benchmark/benchmark.h"
 #include "lower_bound.h"
@@ -119,7 +120,7 @@ struct Fixture {
         break;
       }
     }
-    assert(root != nullptr);
+    CHECK(root != nullptr);
 
     switch (access_pattern) {
       case AccessPattern::kAscending:
@@ -144,17 +145,17 @@ struct Fixture {
     // Ensure that every node has valid pointers.
     for (const Node& node : nodes) {
       if (node.left != nullptr) {
-        assert(std::greater_equal()(node.left, &nodes.front()));
-        assert(std::less_equal()(node.left, &nodes.back()));
+        DCHECK(std::greater_equal()(node.left, &nodes.front()));
+        DCHECK(std::less_equal()(node.left, &nodes.back()));
       }
       if (node.right != nullptr) {
-        assert(std::greater_equal()(node.right, &nodes.front()));
-        assert(std::less_equal()(node.right, &nodes.back()));
+        DCHECK(std::greater_equal()(node.right, &nodes.front()));
+        DCHECK(std::less_equal()(node.right, &nodes.back()));
       }
     }
 
     // Ensure that we can format the tree.
-    assert(TreeDebugString(root) != "hello world");
+    DCHECK(TreeDebugString(root) != "hello world");
   }
 
 };

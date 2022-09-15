@@ -92,6 +92,7 @@ target_link_libraries(
   lower_bound_benchmark
   lower_bound
   benchmark::benchmark
+  absl::check
   absl::random_bit_gen_ref
   absl::random_random
 )
