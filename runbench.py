@@ -49,7 +49,7 @@ def Benchmarks(args: List[str]) -> List[Benchmark]:
     return benchmarks
 
 
-def PrintCrappyHistogram(a, bins=50, width=80):
+def PrintCrappyHistogram(a, bins=24, width=79):
     h, b = np.histogram(a, bins)
 
     for i in range(0, bins):
@@ -65,45 +65,51 @@ def MagicThing(a):
     return st.t.interval(0.95, len(a) - 1, loc=np.mean(a), scale=st.sem(a))
 
 
-def BaseFilename(results_dir, benchmark, attempt):
-    return os.path.join(results_dir, benchmark.name.replace("/", ".")) + f".{attempt}"
+def ResultFilename(results_dir, benchmark, suffix):
+    name = os.path.join(results_dir, benchmark.name.replace("/", "."))
+    if suffix is not None:
+        name = name + f".{suffix}"
+    return name
 
 
 def RunOne(results_dir, benchmark: Benchmark) -> None:
     print(f"Running {benchmark.name} and saving to {results_dir}")
 
-    all_results: List[Dict[str, Union[str, int, float, bool]]] = []
-    repetitions = 20
+    all_iterations: List[Dict[str, Union[str, int, float, bool]]] = []
+    all_console = ""
+    context = None
+    repetitions = 10
     for attempt in itertools.count(0):
         args = benchmark.args + [
             f"--benchmark_out={benchmark_out}",
             f"--benchmark_repetitions={repetitions}",
         ]
         # print(shlex.join(args))
-        repetitions = round(repetitions * 1.2)
-        if repetitions > 100:
-            repetitions = 100
         console = subprocess.check_output(
             args, stderr=subprocess.STDOUT, encoding="utf-8"
         )
-
-        base_out = BaseFilename(results_dir, benchmark, attempt)
-        with open(base_out + ".out", "w", encoding="utf-8") as f:
-            f.write(console)
+        all_console = console + all_console
 
         json_text: str
         with open(benchmark_out, "r", encoding="utf-8") as f:
             json_text = f.read()
 
-        with open(base_out + ".json", "w", encoding="utf-8") as f:
-            f.write(json_text)
+        # with open(base_out + ".json", "w", encoding="utf-8") as f:
+        #     f.write(json_text)
 
         results = json.loads(json_text)
-        benchmarks = results["benchmarks"]
-        all_results.extend([b for b in benchmarks if b.get("run_type") == "iteration"])
+
+        # Remember the first context dict so we can write that one out when
+        # we're done.
+        if context is None:
+            context = results["context"]
+
+        for b in results["benchmarks"]:
+            if b.get("run_type") == "iteration":
+                all_iterations.append(b)
 
         elapsed: List[float] = []
-        for b in all_results:
+        for b in all_iterations:
             assert isinstance(b["real_time"], float)
             elapsed.append(b["real_time"])
         mean = statistics.mean(elapsed)
@@ -117,11 +123,19 @@ def RunOne(results_dir, benchmark: Benchmark) -> None:
             f"cv {cv * 100:.3f}% conf {interval_pct*100:.2}% "
             f"samples {len(elapsed)}"
         )
-        if cv <= 0.01:
+        # if len(elapsed) > 100:
+        #     PrintCrappyHistogram(elapsed)
+        if len(elapsed) >= 100 and interval_pct <= 0.005:
             break
-        if interval_pct <= 0.01:
-            break
-        PrintCrappyHistogram(elapsed)
+
+    name = ResultFilename(results_dir, benchmark, "json")
+    result = {"context": context, "benchmarks": all_iterations}
+    with open(name, "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=4)
+
+    name = ResultFilename(results_dir, benchmark, "console")
+    with open(name, "w", encoding="utf-8") as f:
+        f.write(all_console)
 
 
 def Run(results_dir, benchmark_args) -> None:
