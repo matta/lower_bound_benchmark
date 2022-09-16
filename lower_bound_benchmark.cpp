@@ -202,15 +202,17 @@ void BM_LowerBound(benchmark::State& state, MemoryLayout layout,
     }
   }
 
-  state.counters["tree_height"] =
+  state.counters["height"] =
       benchmark::Counter(static_cast<double>(expected.height));
-  state.counters["node_count"] =
+  state.counters["nodes"] =
       benchmark::Counter(static_cast<double>(expected.size));
-  state.counters["time_per_node_traversed"] =
-      benchmark::Counter(static_cast<double>(expected.height),
-                         benchmark::Counter::kIsIterationInvariantRate |
-                             benchmark::Counter::kInvert);
-  state.counters["working_set_bytes"] = benchmark::Counter(
+  if (false) {
+    state.counters["time_per_node_traversed"] =
+        benchmark::Counter(static_cast<double>(expected.height),
+                           benchmark::Counter::kIsIterationInvariantRate |
+                               benchmark::Counter::kInvert);
+  }
+  state.counters["mem"] = benchmark::Counter(
       static_cast<double>(fixture.WorkingSetBytes()),
       benchmark::Counter::kDefaults, benchmark::Counter::kIs1024);
 }
@@ -226,8 +228,15 @@ int MaxCacheSize() {
 }
 
 void RegisterAll() {
+  // Benchmark up to half the L3 cache size.
+  //
+  // This used to run benchmarks up to 10x the maximum cache size.  These
+  // benchmarks were effectively testing main memory latency more than
+  // anything else.  They were also quite succeptible to variance induced
+  // by apparent background processes, and seemed to exhibit bimodal
+  // behavior in some cases.
   int max_cache_size = MaxCacheSize();
-  int target_working_set_size = max_cache_size * 10;
+  int target_working_set_size = max_cache_size / 2;
 
   for (MemoryLayout layout :
        {MemoryLayout::kAscending, MemoryLayout::kRandom}) {
