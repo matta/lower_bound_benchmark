@@ -73,12 +73,26 @@ def ResultFilename(results_dir, benchmark, suffix):
 
 
 def RunOne(results_dir, benchmark: Benchmark) -> None:
+    json_results_name = ResultFilename(results_dir, benchmark, "json")
+    if os.path.exists(json_results_name):
+        print(f"Skipping {benchmark.name} because {json_results_name} exists.")
+        return
     print(f"Running {benchmark.name} and saving to {results_dir}")
 
     all_iterations: List[Dict[str, Union[str, int, float, bool]]] = []
     all_console = ""
     context = None
+
+    # Proceed in increments of 10 repetitions.  If after 50 we are within a
+    # confidence interval of 0.5% we are done.  Otherwise proceed in
+    # increments of 10 repetitions until the confidence interval shrinks
+    # below the threshold.  To deal with pathalogical cases, increase the
+    # threshold by 0.05% each time.
     repetitions = 10
+    min_repetitions = 50
+    conf_interval_pct_threshold = 0.005
+    conf_interval_pct_increment = 0.0005
+
     for attempt in itertools.count(0):
         args = benchmark.args + [
             f"--benchmark_out={benchmark_out}",
@@ -120,21 +134,26 @@ def RunOne(results_dir, benchmark: Benchmark) -> None:
         interval_pct = (high95 - low95) / mean
         print(
             f"  med {median:.4f} mean {mean:.4f} stdev {stdev:.4f} "
-            f"cv {cv * 100:.3f}% conf {interval_pct*100:.2}% "
+            f"cv {cv * 100:.3f}% "
+            f"conf {interval_pct*100:.2}% "
+            f"(threshold {conf_interval_pct_threshold*100:.2}%) "
             f"samples {len(elapsed)}"
         )
         # if len(elapsed) > 100:
         #     PrintCrappyHistogram(elapsed)
-        if len(elapsed) >= 100 and interval_pct <= 0.005:
-            break
+        if len(elapsed) >= 50:
+            if interval_pct <= conf_interval_pct_threshold:
+                break
+            conf_interval_pct_threshold = (
+                conf_interval_pct_threshold + conf_interval_pct_increment
+            )
 
-    name = ResultFilename(results_dir, benchmark, "json")
     result = {"context": context, "benchmarks": all_iterations}
-    with open(name, "w", encoding="utf-8") as f:
+    with open(json_results_name, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=4)
 
-    name = ResultFilename(results_dir, benchmark, "console")
-    with open(name, "w", encoding="utf-8") as f:
+    console_results_name = ResultFilename(results_dir, benchmark, "console")
+    with open(console_results_name, "w", encoding="utf-8") as f:
         f.write(all_console)
 
 
