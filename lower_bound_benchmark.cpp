@@ -234,7 +234,7 @@ void RegisterAll() {
     for (AccessPattern access :
          {AccessPattern::kAscending, AccessPattern::kRandom}) {
       std::ostringstream os;
-      os << "BM_LowerBound/" << layout << '/' << access;
+      os << "LowerBound/" << layout << '/' << access;
       auto* benchmark = benchmark::RegisterBenchmark(
           os.str().c_str(), [layout, access](benchmark::State& state) {
             BM_LowerBound(state, layout, access);
