@@ -9,10 +9,12 @@
 # git diff -U0 --no-color | clang-format-diff -p1 -i
 # (modifications are applied)
 ---
-Language:		Cpp
-Standard:		c++17
-BasedOnStyle:		google
-ColumnLimit:		79
+Language: Cpp
+Standard: c++20
+BasedOnStyle: Google
+ColumnLimit: 79
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
 DerivePointerAlignment: false
-PointerAlignment:	Left
+PointerAlignment: Left
 ...

@@ -257,7 +257,8 @@ int main(int argc, char** argv) {
   // Run the Google Benchmark code.  Most of this is standard boilerplate
   // except for the call to lower_bound::RegisterAll().
   benchmark::Initialize(&argc, argv);
-  if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+  if (benchmark::ReportUnrecognizedArguments(argc, argv))
+    return 1;
   lower_bound::RegisterAll();
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();

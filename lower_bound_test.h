@@ -27,7 +27,8 @@ int HeightForCount(T node_count) {
 
 inline void VisitInOrder(const Node* node,
                          const std::function<void(const Node*)>& visit) {
-  if (node == nullptr) return;
+  if (node == nullptr)
+    return;
   VisitInOrder(node->left, visit);
   visit(node);
   VisitInOrder(node->right, visit);
