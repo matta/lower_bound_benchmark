@@ -26,7 +26,14 @@ benchmark runs that were atypically slow, presumably by preventing one core
 from running the benchmark and some other workload concurrently.
 
 I have not yet explored using https://github.com/lpechacek/cpuset to
-allocate specific sets of CPUs and/or NUMA memory to benchmarks.
+allocate specific sets of CPUs and/or NUMA memory to benchmarks.  However,
+this utility no longer works:
+https://github.com/systemd/systemd/issues/19518,
+https://github.com/lpechacek/cpuset/issues/40.
+
+More links, mainly from the cpuset issue:
+https://github.com/parallelvirtualcluster/pvc-ansible/commit/3de777a0366bca9f51124e0c05f46f2a90385127
+https://systemd.io/CGROUP_DELEGATION/
 
 Credit and inspiration to https://llvm.org/docs/Benchmarking.html.
 """
