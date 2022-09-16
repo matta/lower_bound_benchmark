@@ -1,4 +1,9 @@
-# Benchmarking Search in Binary Search Trees
+* Benchmarking Search in Binary Search Trees
+
+LowerBound on godbolt: https://godbolt.org/z/ExeTz5qG7
+Find on godbolt: https://godbolt.org/z/oPz5oh81a
+
+** TODO https://kristerw.github.io/2022/05/24/branchless/
 
 <!-- ## TLDR -->
 
