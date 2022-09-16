@@ -62,7 +62,7 @@ def PrintCrappyHistogram(a, bins=24, width=79):
 
 
 def MagicThing(a):
-    return st.t.interval(0.95, len(a) - 1, loc=np.mean(a), scale=st.sem(a))
+    return st.t.interval(0.99, len(a) - 1, loc=np.mean(a), scale=st.sem(a))
 
 
 def ResultFilename(results_dir, benchmark, suffix):
@@ -135,8 +135,8 @@ def RunOne(results_dir, benchmark: Benchmark) -> None:
         print(
             f"  med {median:.4f} mean {mean:.4f} stdev {stdev:.4f} "
             f"cv {cv * 100:.3f}% "
-            f"conf {interval_pct*100:.2}% "
-            f"(threshold {conf_interval_pct_threshold*100:.2}%) "
+            f"conf {interval_pct*100:.3}% "
+            f"(threshold {conf_interval_pct_threshold*100:.3}%) "
             f"samples {len(elapsed)}"
         )
         # if len(elapsed) > 100:
