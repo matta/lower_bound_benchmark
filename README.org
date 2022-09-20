@@ -5,6 +5,19 @@ Find on godbolt: https://godbolt.org/z/oPz5oh81a
 
 ** TODO https://kristerw.github.io/2022/05/24/branchless/
 
+** TODO https://www.reddit.com/r/cpp/comments/s0sodf/comment/hs8odbz/?utm_source=share&utm_medium=web2x&context=3
+
+- https://en.m.wikipedia.org/wiki/Speedup
+- https://math.stackexchange.com/questions/1227389/what-is-the-difference-between-faster-by-factor-and-faster-by-percent
+- https://math.stackexchange.com/questions/186730/calculate-x-slower-faster
+- https://www.cs.umd.edu/~meesh/411/CA-online/chapter/summarizing-performance-amdahls-law-and-benchmarks/index.html
+- [[https://hal.inria.fr/hal-00764454/document/][The Speedup-Test]]
+- [[http://tnm.engin.umich.edu/wp-content/uploads/sites/353/2021/06/1995_Notes_on_calculating_computer_performance.pdf][Notes on Calculating Computer Performance]] (rebuffs geometric mean)
+- [[https://dl.acm.org/doi/pdf/10.1145/63039.63043][Calculating Computer Performance With a Single Number]]
+
+
+Is Speedup just "Performance Ratio"?
+
 # ## TLDR
 
 # The exact same binary tree search algorithm can perform 60% better or worse
