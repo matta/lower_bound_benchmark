@@ -18,8 +18,21 @@ if(isMultiConfig)
     if(NOT "Asan" IN_LIST CMAKE_CONFIGURATION_TYPES)
         list(APPEND CMAKE_CONFIGURATION_TYPES Asan)
     endif()
+    if(NOT "RelWithProfileGenerate" IN_LIST CMAKE_CONFIGURATION_TYPES)
+        list(APPEND CMAKE_CONFIGURATION_TYPES RelWithProfileGenerate)
+    endif()
+    if(NOT "RelWithProfileUse" IN_LIST CMAKE_CONFIGURATION_TYPES)
+        list(APPEND CMAKE_CONFIGURATION_TYPES RelWithProfileUse)
+    endif()
 else()
-    set(allowedBuildTypes Asan Debug Release RelWithDebInfo MinSizeRel)
+  set(allowedBuildTypes
+    Asan
+    Debug
+    Release
+    RelWithDebInfo
+    RelWithProfileGenerate
+    RelWithProfileUse
+    RelWithMinSizeRel)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "${allowedBuildTypes}")
 
     if(CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE IN_LIST allowedBuildTypes)
@@ -42,9 +55,45 @@ set(CMAKE_EXE_LINKER_FLAGS_ASAN
 set(CMAKE_SHARED_LINKER_FLAGS_ASAN
     "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -fsanitize=address" CACHE STRING
     "Linker lags to be used to create shared libraries for Asan build type." FORCE)
-#
-# END Address Sanitizer Incantations
-#
+
+set(LOWER_BOUND_BENCHMARK_PROFILE_DIR
+  "you-must-set-LOWER_BOUND_BENCHMARK_PROFILE_DIR"
+  CACHE STRING "")
+set(LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH
+  "you-must-set-LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH"
+  CACHE STRING "")
+
+set(CMAKE_C_FLAGS_RELWITHPROFILEGENERATE
+    "${CMAKE_C_FLAGS_RELEASE} -fprofile-generate -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH}" CACHE STRING
+    "Flags used by the C compiler for Asan build type or configuration." FORCE)
+
+set(CMAKE_CXX_FLAGS_RELWITHPROFILEGENERATE
+    "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-generate -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH}" CACHE STRING
+    "Flags used by the C++ compiler for Asan build type or configuration." FORCE)
+
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHPROFILEGENERATE
+    "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -fprofile-generate -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH}" CACHE STRING
+    "Linker flags to be used to create executables for RelWithProfileGenerate build type." FORCE)
+
+set(CMAKE_SHARED_LINKER_FLAGS_RELWITHPROFILEGENERATE
+    "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -fprofile-generate -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH}" CACHE STRING
+    "Linker lags to be used to create shared libraries for RelWithProfileGenerate build type." FORCE)
+
+set(CMAKE_C_FLAGS_RELWITHPROFILEUSE
+    "${CMAKE_C_FLAGS_RELEASE} -fprofile-use -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH} -Wno-error=coverage-mismatch" CACHE STRING
+    "Flags used by the C compiler for Asan build type or configuration." FORCE)
+
+set(CMAKE_CXX_FLAGS_RELWITHPROFILEUSE
+    "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-use -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH} -Wno-error=coverage-mismatch" CACHE STRING
+    "Flags used by the C++ compiler for Asan build type or configuration." FORCE)
+
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHPROFILEUSE
+    "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -fprofile-use -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH} -Wno-error=coverage-mismatch" CACHE STRING
+    "Linker flags to be used to create executables for RelWithProfileGenerate build type." FORCE)
+
+set(CMAKE_SHARED_LINKER_FLAGS_RELWITHPROFILEUSE
+    "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -fprofile-use -fprofile-dir=${LOWER_BOUND_BENCHMARK_PROFILE_DIR} -fprofile-prefix-path=${LOWER_BOUND_BENCHMARK_PROFILE_PREFIX_PATH} -Wno-error=coverage-mismatch" CACHE STRING
+    "Linker lags to be used to create shared libraries for RelWithProfileGenerate build type." FORCE)
 
 include(FetchContent)
 

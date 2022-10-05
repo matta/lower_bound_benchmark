@@ -19,9 +19,14 @@ namespace lower_bound {
 // Node is a binary tree node.  It has the usual left and right links and
 // an integral key.
 struct Node {
-  Node* left = nullptr;
-  Node* right = nullptr;
   int key = 0;
+  Node* links[2] = {nullptr, nullptr};
+
+  using NodePtr = Node*;
+  NodePtr& left() { return links[0]; }
+  NodePtr& right() { return links[1]; }
+  NodePtr left() const { return links[0]; }
+  NodePtr right() const { return links[1]; }
 };
 
 // LowerBound returns the first node in the tree rooted at "x" whose key is

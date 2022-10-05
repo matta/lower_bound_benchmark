@@ -44,14 +44,14 @@ TEST(LowerBound, BasicAssertions) {
 
   Node left;
   left.key = 50;
-  root.left = &left;
+  root.left() = &left;
   EXPECT_EQ(LowerBound(&root, 49), &left);
   EXPECT_EQ(LowerBound(&root, 50), &left);
   EXPECT_EQ(LowerBound(&root, 51), nullptr);
 
   Node right;
   right.key = 60;
-  root.right = &right;
+  root.right() = &right;
   EXPECT_EQ(LowerBound(&root, 49), &left);
   EXPECT_EQ(LowerBound(&root, 50), &left);
   EXPECT_EQ(LowerBound(&root, 51), &right);

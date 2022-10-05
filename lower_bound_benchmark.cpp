@@ -144,13 +144,13 @@ struct Fixture {
 
     // Ensure that every node has valid pointers.
     for (const Node& node : nodes) {
-      if (node.left != nullptr) {
-        DCHECK(std::greater_equal()(node.left, &nodes.front()));
-        DCHECK(std::less_equal()(node.left, &nodes.back()));
+      if (node.left() != nullptr) {
+        DCHECK(std::greater_equal()(node.left(), &nodes.front()));
+        DCHECK(std::less_equal()(node.left(), &nodes.back()));
       }
-      if (node.right != nullptr) {
-        DCHECK(std::greater_equal()(node.right, &nodes.front()));
-        DCHECK(std::less_equal()(node.right, &nodes.back()));
+      if (node.right() != nullptr) {
+        DCHECK(std::greater_equal()(node.right(), &nodes.front()));
+        DCHECK(std::less_equal()(node.right(), &nodes.back()));
       }
     }
 

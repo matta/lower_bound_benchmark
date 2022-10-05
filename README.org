@@ -3,7 +3,9 @@
 LowerBound on godbolt: https://godbolt.org/z/ExeTz5qG7
 Find on godbolt: https://godbolt.org/z/oPz5oh81a
 
-** TODO https://kristerw.github.io/2022/05/24/branchless/
+** TODO Consider https://kristerw.github.io/2022/05/24/branchless/
+** TODO Consider https://parsec.cs.princeton.edu/publications/chen14ieeetc.pdf
+** TODO Consider https://ascar.io/en/pilot and https://download.tuneup.ai/s/pilot-mascots16-final2.pdf
 
 # ## TLDR
 

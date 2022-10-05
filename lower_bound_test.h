@@ -29,9 +29,9 @@ inline void VisitInOrder(const Node* node,
                          const std::function<void(const Node*)>& visit) {
   if (node == nullptr)
     return;
-  VisitInOrder(node->left, visit);
+  VisitInOrder(node->links[0], visit);
   visit(node);
-  VisitInOrder(node->right, visit);
+  VisitInOrder(node->links[1], visit);
 }
 
 inline std::vector<int> OffsetsForHeight(int height) {
@@ -100,9 +100,10 @@ inline TreeProperties ComputeTreeProperties(Node* node,
     std::abort();
   }
 
-  TreeProperties left = ComputeTreeProperties(node->left, minimum, &node->key);
+  TreeProperties left =
+      ComputeTreeProperties(node->left(), minimum, &node->key);
   TreeProperties right =
-      ComputeTreeProperties(node->right, &node->key, maximum);
+      ComputeTreeProperties(node->right(), &node->key, maximum);
 
   return TreeProperties{.height = 1 + std::max(left.height, right.height),
                         .size = 1 + left.size + right.size};
@@ -115,9 +116,9 @@ inline std::string TreeDebugString(Node* node) {
   os << '(';
   if (node != nullptr) {
     os << node->key;
-    if (!(node->left == nullptr && node->right == nullptr)) {
-      os << ' ' << TreeDebugString(node->left) << ' '
-         << TreeDebugString(node->right);
+    if (!(node->left() == nullptr && node->right() == nullptr)) {
+      os << ' ' << TreeDebugString(node->left()) << ' '
+         << TreeDebugString(node->right());
     }
   } else {
     os << "nil";
@@ -140,9 +141,9 @@ inline Node* LayoutAscendingRecur(int& key, std::span<Node>::iterator& next,
   }
   Node* left = LayoutAscendingRecur(key, next, end, maximum_height - 1);
   Node* node = &*next++;
-  node->left = left;
+  node->left() = left;
   node->key = key++;
-  node->right = LayoutAscendingRecur(key, next, end, maximum_height - 1);
+  node->right() = LayoutAscendingRecur(key, next, end, maximum_height - 1);
   return node;
 }
 
@@ -162,11 +163,11 @@ inline Node* LayoutAtRandomRecur(int maximum_height, std::span<int> mapping,
   }
 
   Node& node = nodes[mapping[next_index++]];
-  node.left = LayoutAtRandomRecur(maximum_height - 1, mapping, nodes, next_key,
-                                  next_index);
+  node.left() = LayoutAtRandomRecur(maximum_height - 1, mapping, nodes,
+                                    next_key, next_index);
   node.key = next_key++;
-  node.right = LayoutAtRandomRecur(maximum_height - 1, mapping, nodes,
-                                   next_key, next_index);
+  node.right() = LayoutAtRandomRecur(maximum_height - 1, mapping, nodes,
+                                     next_key, next_index);
   return &node;
 }
 

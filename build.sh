@@ -15,11 +15,12 @@ function configure() {
 }
 
 function build_test() {
+    echo "==== `pwd` $1 ===="
     cmake --build . --config "$1" && ctest -C "$1" --output-on-failure
 }
 
 function build() {
-    (cd build_$1 && build_test Asan && build_test Release)
+    (cd build_$1 && build_test Asan && build_test RelWithDebInfo)
 }
 
 configure gcc g++
